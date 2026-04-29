@@ -1,0 +1,54 @@
+# ─── Environment ───
+.env
+.env.local
+.env.*.local
+
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ─── Node ───
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ─── Build outputs ───
+frontend/dist/
+backend/dist/
+*.tsbuildinfo
+
+# ─── IDE ───
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─── Docker ───
+docker-compose.override.yml
+
+# ─── Claude Code ───
+CLAUDE.local.md
+
+# ─── Misc ───
+*.log
+tmp/
+temp/
