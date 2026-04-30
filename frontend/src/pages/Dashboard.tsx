@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AppShell } from "../components/layout/AppShell";
 import { KeywordGenerator } from "../components/KeywordGenerator";
 import { FilterPanel } from "../components/FilterPanel";
-import { VideoTable } from "../components/VideoTable";
+import { VideoGrid } from "../components/VideoGrid";
 import { StatsCards } from "../components/ui/StatsCards";
 import type { SearchResponse } from "../api/types";
 
@@ -112,7 +112,7 @@ export default function Dashboard() {
             </h2>
           </div>
           <StatsCards data={results} />
-          <VideoTable videos={results.results} />
+          <VideoGrid videos={results.results} />
         </div>
       )}
     </AppShell>

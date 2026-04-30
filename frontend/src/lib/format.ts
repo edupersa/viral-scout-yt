@@ -27,3 +27,23 @@ export function formatDate(iso: string): string {
 export function scoreToPercent(score: number, maxScore = 20): number {
   return Math.min((score / maxScore) * 100, 100);
 }
+
+export function timeAgo(iso: string): string {
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 2_592_000) return `${Math.floor(seconds / 86400)} days ago`;
+  if (seconds < 31_536_000) return `${Math.floor(seconds / 2_592_000)} months ago`;
+  return `${Math.floor(seconds / 31_536_000)} years ago`;
+}
+
+export function computeViewsPerHour(views: number, publishedAt: string): number {
+  const hours = Math.max(1, (Date.now() - new Date(publishedAt).getTime()) / 3_600_000);
+  return views / hours;
+}
+
+export function formatViewsPerHour(vph: number): string {
+  if (vph >= 1_000_000) return `${(vph / 1_000_000).toFixed(1)}M/h`;
+  if (vph >= 1_000) return `${(vph / 1_000).toFixed(1)}K/h`;
+  return `${Math.round(vph)}/h`;
+}
