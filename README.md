@@ -24,7 +24,7 @@
 
 ## Features
 
-- **AI keyword generation** — describe a niche, get optimized search terms via Claude AI
+- **AI keyword generation** — describe a niche, get optimized search terms via Gemini AI
 - **Outlier score analysis** — ranks videos by views ÷ channel average (10x = ultra-viral)
 - **Advanced filters** — language, video duration, subscriber range, date window
 - **YouTube quota management** — smart caching to stay under the 10,000-unit/day limit
@@ -56,7 +56,7 @@ graph TD
     DB[(PostgreSQL 16)]
     Cache[(Redis 7)]
     YT["YouTube\nData API v3"]
-    AI["Anthropic\nClaude API"]
+    AI["Google\nGemini API"]
 
     User -->|"REST / JWT"| API
     API -->|"SQLAlchemy async"| DB
@@ -66,7 +66,7 @@ graph TD
 ```
 
 **Request flow:**
-1. User describes a niche → Claude generates keyword variants
+1. User describes a niche → Gemini generates keyword variants
 2. Keywords → YouTube search (cache checked first, 100 quota units each)
 3. Each video's channel stats fetched (1 unit each, cached 7 days)
 4. Outlier score computed: `video_views / channel_avg_views_last_30`
@@ -92,7 +92,7 @@ graph TD
 | Styling    | Tailwind CSS 4     | Utility-first, zero dead CSS in production                |
 | Database   | PostgreSQL 16      | ACID, JSONB for flexible metadata, proven at scale        |
 | Cache      | Redis 7            | Quota counters (TTL 24h), search cache (TTL 1h)           |
-| AI         | Claude Sonnet      | Best reasoning-per-token for keyword generation           |
+| AI         | Google Gemini      | Cost-effective keyword generation with generous free tier |
 | Infra      | Docker Compose     | Reproducible dev environment, prod-parity containers      |
 
 ## API documentation
@@ -119,13 +119,13 @@ GET   /api/v1/videos/:id           Video detail + outlier score
 ### Prerequisites
 
 - Docker Desktop 4.x
-- API keys: [YouTube Data API v3](https://console.cloud.google.com/apis/credentials) + [Anthropic](https://console.anthropic.com/settings/keys)
+- API keys: [YouTube Data API v3](https://console.cloud.google.com/apis/credentials) + [Google AI Studio (Gemini)](https://aistudio.google.com/app/apikey)
 
 ### Local setup
 
 ```bash
 cp .env.example .env
-# Edit .env: add YOUTUBE_API_KEY, ANTHROPIC_API_KEY, and a strong JWT_SECRET
+# Edit .env: add YOUTUBE_API_KEY, GEMINI_API_KEY, and a strong JWT_SECRET
 
 docker compose up --build
 ```

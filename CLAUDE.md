@@ -11,7 +11,7 @@ ViralScout is a SaaS tool that helps YouTube creators discover viral video oppor
 - **Backend**: Python 3.12, FastAPI, SQLAlchemy 2.0 (async), Alembic, Celery, Redis
 - **Frontend**: React 19, TypeScript strict, Vite, Tailwind CSS 4, TanStack Query, Zustand
 - **Infra**: Docker, PostgreSQL 16, Redis 7, GitHub Actions CI/CD
-- **APIs**: YouTube Data API v3, Anthropic Claude API
+- **APIs**: YouTube Data API v3, Google Gemini API
 
 ## Detailed skill docs
 
@@ -91,7 +91,7 @@ outlier_score = video_views / channel_avg_views_last_30
 ## Critical constraints
 
 - YouTube API: 10,000 units/day free. search.list = 100 units. videos.list = 1 unit. ALWAYS cache.
-- Claude API: use claude-sonnet-4-20250514 for keyword gen. Charge per token.
+- Gemini API: use gemini-2.0-flash for keyword gen. Charge per token.
 - NEVER expose API keys in frontend. NEVER log secrets. NEVER commit .env.
 - All DB queries via SQLAlchemy parameterized statements.
 - Git: conventional commits, feature branches, squash merge PRs.
