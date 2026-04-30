@@ -26,19 +26,26 @@ class SearchService:
         keywords: list[str],
         filters: SearchFilters,
     ) -> SearchResponse:
-        query = " ".join(keywords)
         published_after = None
         if filters.date_range:
             from app.services.youtube import _published_after
             published_after = _published_after(filters.date_range)
 
-        video_ids = await self._youtube.search_video_ids(
-            query=query,
-            max_results=settings.max_search_results,
-            language=filters.language,
-            duration=filters.duration,
-            published_after=published_after,
-        )
+        # Search top 3 keywords separately and combine — avoids oversized queries
+        seen: set[str] = set()
+        video_ids: list[str] = []
+        for kw in keywords[:3]:
+            ids = await self._youtube.search_video_ids(
+                query=kw,
+                max_results=settings.max_search_results,
+                language=filters.language,
+                duration=filters.duration,
+                published_after=published_after,
+            )
+            for vid_id in ids:
+                if vid_id not in seen:
+                    seen.add(vid_id)
+                    video_ids.append(vid_id)
 
         if not video_ids:
             search = await self._search_repo.create(

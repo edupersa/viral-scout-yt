@@ -30,10 +30,13 @@ WORKDIR /app
 
 COPY --from=builder /install /usr/local
 COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini .
 
-RUN chown -R app:app /app
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh && chown -R app:app /app
 USER app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["./entrypoint.sh"]

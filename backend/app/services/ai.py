@@ -2,11 +2,15 @@ import json
 import logging
 
 from google import genai
+from google.genai import errors
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 from app.config import settings
 from app.exceptions import ExternalServiceException
 
 logger = logging.getLogger(__name__)
+
+_MODEL = "gemini-2.5-flash"
 
 _KEYWORD_PROMPT = """\
 You are an expert YouTube content strategist. Generate {count} search keywords \
@@ -24,6 +28,14 @@ Example output:
 """
 
 
+def _is_retryable(exc: BaseException) -> bool:
+    if isinstance(exc, errors.ServerError):
+        return True
+    if isinstance(exc, errors.ClientError) and getattr(exc, "status_code", None) == 429:
+        return "PerDay" not in str(exc)
+    return False
+
+
 class AIService:
     def __init__(self) -> None:
         self._client = genai.Client(api_key=settings.gemini_api_key)
@@ -32,11 +44,7 @@ class AIService:
         """Generate YouTube search keywords for the given niche using Gemini."""
         prompt = _KEYWORD_PROMPT.format(niche=niche, count=count)
         try:
-            response = self._client.models.generate_content(
-                model="gemini-2.0-flash", contents=prompt
-            )
-            raw = response.text.strip()
-            # Strip markdown code fences if present
+            raw = self._call_gemini(prompt)
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
                 if raw.startswith("json"):
@@ -46,8 +54,29 @@ class AIService:
                 raise ValueError("Expected a JSON array")
             return [str(k).strip() for k in keywords if k][:count]
         except json.JSONDecodeError as e:
-            logger.error("Gemini returned invalid JSON", extra={"niche": niche, "error": str(e)})
+            logger.error("Gemini returned invalid JSON", extra={"niche": niche})
             raise ExternalServiceException("Gemini", f"Invalid JSON response: {e}")
+        except ExternalServiceException:
+            raise
         except Exception as e:
             logger.error("Gemini API error", extra={"niche": niche, "error": str(e)})
             raise ExternalServiceException("Gemini", str(e))
+
+    @retry(
+        retry=retry_if_exception(_is_retryable),
+        wait=wait_exponential(multiplier=2, min=4, max=30),
+        stop=stop_after_attempt(4),
+        reraise=True,
+    )
+    def _call_gemini(self, prompt: str) -> str:
+        try:
+            response = self._client.models.generate_content(
+                model=_MODEL, contents=prompt
+            )
+            return response.text.strip()
+        except errors.ClientError as exc:
+            if "PerDay" in str(exc):
+                raise ExternalServiceException(
+                    "Gemini", "Daily quota exceeded. Please try again tomorrow."
+                ) from exc
+            raise

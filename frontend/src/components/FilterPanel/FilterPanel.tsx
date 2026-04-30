@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { useFilterStore } from "../../stores/filterStore";
 import { useSearch } from "../../api/hooks/useSearch";
+import { getApiErrorMessage } from "../../lib/apiError";
 import { Button } from "../ui/Button";
 import type { SearchResponse, Duration, DateRange } from "../../api/types";
 
@@ -58,8 +59,8 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         },
       });
       onResults(result);
-    } catch {
-      setSearchError("Search failed. Please try again.");
+    } catch (e) {
+      setSearchError(await getApiErrorMessage(e));
     }
   }
 

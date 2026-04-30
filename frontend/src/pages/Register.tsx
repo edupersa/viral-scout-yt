@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link, useNavigate } from "react-router-dom";
 import { useRegister, useLogin } from "../api/hooks/useAuth";
+import { getApiErrorMessage } from "../lib/apiError";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 
@@ -32,8 +33,8 @@ export default function Register() {
       await register(values);
       await login(values);
       navigate("/dashboard");
-    } catch {
-      setError("root", { message: "Registration failed. That email may already be in use." });
+    } catch (e) {
+      setError("root", { message: await getApiErrorMessage(e, "Registration failed. That email may already be in use.") });
     }
   }
 

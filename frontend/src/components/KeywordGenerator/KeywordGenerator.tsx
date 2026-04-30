@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useGenerateKeywords } from "../../api/hooks/useKeywords";
+import { getApiErrorMessage } from "../../lib/apiError";
 import { Button } from "../ui/Button";
 import { KeywordPill } from "./KeywordPill";
 
@@ -26,8 +27,8 @@ export function KeywordGenerator({ onComplete }: KeywordGeneratorProps) {
       const result = await generate(niche.trim());
       setKeywords(result.keywords);
       setSelected(result.keywords);
-    } catch {
-      setError("Failed to generate keywords. Please try again.");
+    } catch (e) {
+      setError(await getApiErrorMessage(e));
     }
   }
 
