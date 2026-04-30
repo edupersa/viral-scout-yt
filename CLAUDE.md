@@ -95,3 +95,4 @@ outlier_score = video_views / channel_avg_views_last_30
 - NEVER expose API keys in frontend. NEVER log secrets. NEVER commit .env.
 - All DB queries via SQLAlchemy parameterized statements.
 - Git: conventional commits, feature branches, squash merge PRs.
+- NEVER add Co-Authored-By or any AI attribution lines to commit messages.
