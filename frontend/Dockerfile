@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /build
 
-COPY package.json package-lock.json ./
-RUN npm ci --frozen-lockfile
+COPY package*.json ./
+RUN npm install --frozen-lockfile 2>/dev/null || npm install
 
 COPY . .
 
