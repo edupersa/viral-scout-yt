@@ -47,6 +47,12 @@ class ExploreService:
         channel_stats = await self._youtube.get_channel_stats(channel_ids)
         enriched = self._youtube.enrich_videos(video_items, channel_stats)
 
+        # Post-filter: duration category (same bounds YouTube uses internally)
+        _DURATION_BOUNDS = {"short": (0, 240), "medium": (240, 1200), "long": (1200, 99_999)}
+        if filters.duration:
+            low, high = _DURATION_BOUNDS[filters.duration]
+            enriched = [v for v in enriched if low <= v["duration_seconds"] < high]
+
         # Post-filter: date range
         if filters.date_range:
             days = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}[filters.date_range]

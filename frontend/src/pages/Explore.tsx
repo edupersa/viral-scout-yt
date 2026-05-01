@@ -6,7 +6,7 @@ import { StatsCards } from "../components/ui/StatsCards";
 import { Button } from "../components/ui/Button";
 import { useExplore } from "../api/hooks/useExplore";
 import { getApiErrorMessage } from "../lib/apiError";
-import type { SearchResponse, DateRange } from "../api/types";
+import type { SearchResponse, Duration, DateRange } from "../api/types";
 
 const LANGUAGES = [
   { value: "", label: "Any language" },
@@ -15,6 +15,13 @@ const LANGUAGES = [
   { value: "pt", label: "Portuguese" },
   { value: "fr", label: "French" },
   { value: "de", label: "German" },
+];
+
+const DURATIONS: { value: Duration | ""; label: string }[] = [
+  { value: "", label: "Cualquiera" },
+  { value: "short", label: "Corto (< 4 min)" },
+  { value: "medium", label: "Medio (4–20 min)" },
+  { value: "long", label: "Largo (> 20 min)" },
 ];
 
 const DATE_RANGES: { value: DateRange | ""; label: string }[] = [
@@ -53,6 +60,7 @@ function UnlimitedCheckbox({
 
 export default function Explore() {
   const [language, setLanguage] = useState("");
+  const [duration, setDuration] = useState<Duration | "">("");
   const [dateRange, setDateRange] = useState<DateRange | "">("");
   const [minDuration, setMinDuration] = useState(0);
   const [maxDuration, setMaxDuration] = useState(60);
@@ -73,7 +81,7 @@ export default function Explore() {
     try {
       const data = await explore({
         language: language || null,
-        duration: null,
+        duration: (duration as Duration) || null,
         min_duration: minDuration * 60,
         max_duration: maxDurationLimited ? maxDuration * 60 : null,
         min_subs: minSubs,
@@ -108,7 +116,7 @@ export default function Explore() {
           Filtros
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-zinc-300">Idioma</label>
             <select
@@ -118,6 +126,19 @@ export default function Explore() {
             >
               {LANGUAGES.map((l) => (
                 <option key={l.value} value={l.value}>{l.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-zinc-300">Categoría de duración</label>
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value as Duration | "")}
+              className={selectClass}
+            >
+              {DURATIONS.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
               ))}
             </select>
           </div>
