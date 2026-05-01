@@ -72,8 +72,10 @@ class SearchService:
         # Filter by subscribers and views
         enriched = [
             v for v in enriched
-            if filters.min_subs <= v["subs"] <= filters.max_subs
+            if v["subs"] >= filters.min_subs
+            and (filters.max_subs is None or v["subs"] <= filters.max_subs)
             and v["views"] >= filters.min_views
+            and (filters.max_views is None or v["views"] <= filters.max_views)
         ]
 
         saved_videos = await self._video_repo.upsert_many(enriched)

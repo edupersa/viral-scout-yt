@@ -6,7 +6,10 @@ interface FilterValues {
   duration: Duration | "";
   minSubs: number;
   maxSubs: number;
+  maxSubsLimited: boolean;
   minViews: number;
+  maxViews: number;
+  maxViewsLimited: boolean;
   dateRange: DateRange | "";
 }
 
@@ -21,8 +24,11 @@ const DEFAULT_FILTERS: FilterValues = {
   language: "",
   duration: "",
   minSubs: 0,
-  maxSubs: 10_000_000,
+  maxSubs: 1_000_000,
+  maxSubsLimited: false,
   minViews: 0,
+  maxViews: 1_000_000,
+  maxViewsLimited: false,
   dateRange: "",
 };
 

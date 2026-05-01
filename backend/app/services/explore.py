@@ -67,8 +67,10 @@ class ExploreService:
         # Post-filter: subscribers and views
         enriched = [
             v for v in enriched
-            if filters.min_subs <= v["subs"] <= filters.max_subs
+            if v["subs"] >= filters.min_subs
+            and (filters.max_subs is None or v["subs"] <= filters.max_subs)
             and v["views"] >= filters.min_views
+            and (filters.max_views is None or v["views"] <= filters.max_views)
         ]
 
         await self._user_repo.increment_search_count(user.id)

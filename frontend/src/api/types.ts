@@ -35,8 +35,9 @@ export interface SearchFilters {
   language: string | null;
   duration: Duration | null;
   min_subs: number;
-  max_subs: number;
+  max_subs: number | null;
   min_views: number;
+  max_views: number | null;
   date_range: DateRange | null;
 }
 

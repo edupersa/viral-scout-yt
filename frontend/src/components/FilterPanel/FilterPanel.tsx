@@ -36,11 +36,37 @@ const DATE_RANGES: { value: DateRange | ""; label: string }[] = [
   { value: "365d", label: "Last year" },
 ];
 
+const inputClass =
+  "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500 hover:border-zinc-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-zinc-700";
+
 const selectClass =
   "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500 hover:border-zinc-600 transition-colors";
 
+function UnlimitedCheckbox({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-1.5 text-xs text-zinc-500 cursor-pointer select-none">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-red-500 w-3.5 h-3.5 cursor-pointer"
+      />
+      Sin límite
+    </label>
+  );
+}
+
 export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelProps) {
-  const { language, duration, minSubs, maxSubs, minViews, dateRange, setFilter } = useFilterStore();
+  const {
+    language, duration, minSubs, maxSubs, maxSubsLimited,
+    minViews, maxViews, maxViewsLimited, dateRange, setFilter,
+  } = useFilterStore();
   const { mutateAsync: searchVideos, isPending } = useSearch();
   const [searchError, setSearchError] = useState<string | null>(null);
 
@@ -54,8 +80,9 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
           language: language || null,
           duration: (duration as Duration) || null,
           min_subs: minSubs,
-          max_subs: maxSubs,
+          max_subs: maxSubsLimited ? maxSubs : null,
           min_views: minViews,
+          max_views: maxViewsLimited ? maxViews : null,
           date_range: (dateRange as DateRange) || null,
         },
       });
@@ -83,9 +110,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
             className={selectClass}
           >
             {LANGUAGES.map((l) => (
-              <option key={l.value} value={l.value}>
-                {l.label}
-              </option>
+              <option key={l.value} value={l.value}>{l.label}</option>
             ))}
           </select>
         </div>
@@ -98,9 +123,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
             className={selectClass}
           >
             {DURATIONS.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
+              <option key={d.value} value={d.value}>{d.label}</option>
             ))}
           </select>
         </div>
@@ -113,57 +136,90 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
             className={selectClass}
           >
             {DATE_RANGES.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
+              <option key={d.value} value={d.value}>{d.label}</option>
             ))}
           </select>
         </div>
       </div>
 
-      <div className="space-y-3">
+      {/* Subscribers */}
+      <div className="space-y-2">
         <p className="text-sm font-medium text-zinc-300">
-          Subscriber Range:{" "}
+          Suscriptores:{" "}
           <span className="text-zinc-400 font-normal">
-            {minSubs.toLocaleString()} – {maxSubs.toLocaleString()}
+            {minSubs.toLocaleString()} –{" "}
+            {maxSubsLimited ? maxSubs.toLocaleString() : "Sin límite"}
           </span>
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-500">Minimum</span>
+            <span className="text-xs text-zinc-500">Mínimo</span>
             <input
               type="number"
               min={0}
               value={minSubs}
               onChange={(e) => setFilter("minSubs", Number(e.target.value))}
-              className={selectClass}
+              className={inputClass}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-500">Maximum</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-500">Máximo</span>
+              <UnlimitedCheckbox
+                checked={!maxSubsLimited}
+                onChange={(v) => setFilter("maxSubsLimited", !v)}
+              />
+            </div>
             <input
               type="number"
               min={0}
               value={maxSubs}
+              disabled={!maxSubsLimited}
               onChange={(e) => setFilter("maxSubs", Number(e.target.value))}
-              className={selectClass}
+              className={inputClass}
             />
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-zinc-300">
-          Min. Views:{" "}
-          <span className="text-zinc-400 font-normal">{minViews.toLocaleString()}</span>
-        </label>
-        <input
-          type="number"
-          min={0}
-          value={minViews}
-          onChange={(e) => setFilter("minViews", Number(e.target.value))}
-          className={selectClass}
-        />
+      {/* Views */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-zinc-300">
+          Visitas:{" "}
+          <span className="text-zinc-400 font-normal">
+            {minViews.toLocaleString()} –{" "}
+            {maxViewsLimited ? maxViews.toLocaleString() : "Sin límite"}
+          </span>
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-zinc-500">Mínimo</span>
+            <input
+              type="number"
+              min={0}
+              value={minViews}
+              onChange={(e) => setFilter("minViews", Number(e.target.value))}
+              className={inputClass}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-500">Máximo</span>
+              <UnlimitedCheckbox
+                checked={!maxViewsLimited}
+                onChange={(v) => setFilter("maxViewsLimited", !v)}
+              />
+            </div>
+            <input
+              type="number"
+              min={0}
+              value={maxViews}
+              disabled={!maxViewsLimited}
+              onChange={(e) => setFilter("maxViews", Number(e.target.value))}
+              className={inputClass}
+            />
+          </div>
+        </div>
       </div>
 
       {searchError && <p className="text-sm text-red-400">{searchError}</p>}
