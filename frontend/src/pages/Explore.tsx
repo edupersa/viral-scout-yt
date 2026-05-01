@@ -73,6 +73,7 @@ export default function Explore() {
     try {
       const data = await explore({
         language: language || null,
+        duration: null,
         min_duration: minDuration * 60,
         max_duration: maxDurationLimited ? maxDuration * 60 : null,
         min_subs: minSubs,

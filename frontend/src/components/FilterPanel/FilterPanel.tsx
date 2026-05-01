@@ -4,13 +4,20 @@ import { useFilterStore } from "../../stores/filterStore";
 import { useSearch } from "../../api/hooks/useSearch";
 import { getApiErrorMessage } from "../../lib/apiError";
 import { Button } from "../ui/Button";
-import type { SearchResponse, DateRange } from "../../api/types";
+import type { SearchResponse, Duration, DateRange } from "../../api/types";
 
 interface FilterPanelProps {
   niche: string;
   selectedKeywords: string[];
   onResults: (data: SearchResponse) => void;
 }
+
+const DURATIONS: { value: Duration | ""; label: string }[] = [
+  { value: "", label: "Cualquiera" },
+  { value: "short", label: "Corto (< 4 min)" },
+  { value: "medium", label: "Medio (4–20 min)" },
+  { value: "long", label: "Largo (> 20 min)" },
+];
 
 const LANGUAGES = [
   { value: "", label: "Any language" },
@@ -57,7 +64,7 @@ function UnlimitedCheckbox({
 
 export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelProps) {
   const {
-    language,
+    language, duration,
     minDuration, maxDuration, maxDurationLimited,
     minSubs, maxSubs, maxSubsLimited,
     minViews, maxViews, maxViewsLimited,
@@ -74,6 +81,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         keywords: selectedKeywords,
         filters: {
           language: language || null,
+          duration: (duration as Duration) || null,
           min_duration: minDuration * 60,
           max_duration: maxDurationLimited ? maxDuration * 60 : null,
           min_subs: minSubs,
@@ -98,7 +106,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-zinc-300">Language</label>
           <select
@@ -108,6 +116,22 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
           >
             {LANGUAGES.map((l) => (
               <option key={l.value} value={l.value}>{l.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-zinc-300">
+            Categoría de duración
+            <span className="ml-1 text-xs font-normal text-zinc-500">(YouTube)</span>
+          </label>
+          <select
+            value={duration}
+            onChange={(e) => setFilter("duration", e.target.value as Duration | "")}
+            className={selectClass}
+          >
+            {DURATIONS.map((d) => (
+              <option key={d.value} value={d.value}>{d.label}</option>
             ))}
           </select>
         </div>
@@ -126,10 +150,12 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         </div>
       </div>
 
-      {/* Duration */}
+      {/* Duration fine-grained */}
       <div className="space-y-2">
         <p className="text-sm font-medium text-zinc-300">
-          Duración:{" "}
+          Duración exacta
+          <span className="ml-1 text-xs font-normal text-zinc-500">(filtro preciso)</span>
+          {": "}
           <span className="text-zinc-400 font-normal">
             {minDuration} min –{" "}
             {maxDurationLimited ? `${maxDuration} min` : "Sin límite"}

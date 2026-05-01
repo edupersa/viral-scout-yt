@@ -1,9 +1,10 @@
 import { create } from "zustand";
-import type { DateRange } from "../api/types";
+import type { DateRange, Duration } from "../api/types";
 
 interface FilterValues {
   language: string;
-  minDuration: number;        // minutes
+  duration: Duration | "";    // YouTube API pre-filter
+  minDuration: number;        // minutes, app post-filter
   maxDuration: number;        // minutes
   maxDurationLimited: boolean;
   minSubs: number;
@@ -24,6 +25,7 @@ type FilterState = FilterValues & FilterActions;
 
 const DEFAULT_FILTERS: FilterValues = {
   language: "",
+  duration: "",
   minDuration: 0,
   maxDuration: 60,
   maxDurationLimited: false,

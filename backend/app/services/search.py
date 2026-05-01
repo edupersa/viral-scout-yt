@@ -45,6 +45,7 @@ class SearchService:
                 query=kw,
                 max_results=settings.max_search_results,
                 language=filters.language,
+                duration=filters.duration,
                 published_after=published_after,
             )
             for vid_id in ids:

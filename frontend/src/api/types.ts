@@ -27,12 +27,14 @@ export interface KeywordResponse {
   niche: string;
 }
 
+export type Duration = "short" | "medium" | "long";
 export type DateRange = "7d" | "30d" | "90d" | "365d";
 export type ViralityClass = "ultra_viral" | "very_viral" | "normal";
 
 export interface SearchFilters {
   language: string | null;
-  min_duration: number;       // seconds
+  duration: Duration | null;   // YouTube API pre-filter (short/medium/long)
+  min_duration: number;        // seconds, app-level post-filter
   max_duration: number | null; // seconds, null = no limit
   min_subs: number;
   max_subs: number | null;
