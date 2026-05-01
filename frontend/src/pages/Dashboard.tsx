@@ -1,18 +1,34 @@
 import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { KeywordGenerator } from "../components/KeywordGenerator";
 import { FilterPanel } from "../components/FilterPanel";
+import { FilterModal } from "../components/FilterModal";
 import { VideoGrid } from "../components/VideoGrid";
 import { StatsCards } from "../components/ui/StatsCards";
+import { useFilterStore } from "../stores/filterStore";
 import type { SearchResponse } from "../api/types";
 
 type Step = 1 | 2 | 3;
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: "English",
+  es: "Spanish",
+  pt: "Portuguese",
+  fr: "French",
+  de: "German",
+};
+
+const MAX_VISIBLE_KEYWORDS = 4;
 
 export default function Dashboard() {
   const [step, setStep] = useState<Step>(1);
   const [niche, setNiche] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [results, setResults] = useState<SearchResponse | null>(null);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+
+  const language = useFilterStore((s) => s.language);
 
   function handleKeywordsReady(resolvedNiche: string, keywords: string[]) {
     setNiche(resolvedNiche);
@@ -31,6 +47,9 @@ export default function Dashboard() {
     setSelectedKeywords([]);
     setResults(null);
   }
+
+  const visibleKeywords = selectedKeywords.slice(0, MAX_VISIBLE_KEYWORDS);
+  const hiddenCount = selectedKeywords.length - MAX_VISIBLE_KEYWORDS;
 
   return (
     <AppShell>
@@ -103,17 +122,61 @@ export default function Dashboard() {
       {/* Step 3: Results */}
       {step === 3 && results && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold text-zinc-100">
-              Search Results
-              <span className="ml-2 text-sm font-normal text-zinc-500">
-                {results.total} videos found
+          {/* Title */}
+          <h2 className="text-xl font-bold text-zinc-100">
+            Resultados
+            <span className="ml-2 text-sm font-normal text-zinc-500">
+              {results.total} videos
+            </span>
+          </h2>
+
+          {/* Context bar: language · keywords  |  Filtros button */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {language && (
+              <>
+                <span className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
+                  {LANGUAGE_LABELS[language] ?? language.toUpperCase()}
+                </span>
+                <span className="text-zinc-600">·</span>
+              </>
+            )}
+            {visibleKeywords.map((kw) => (
+              <span
+                key={kw}
+                className="px-2.5 py-1 rounded-full border border-zinc-600 bg-zinc-800 text-xs text-zinc-300 max-w-40 truncate"
+                title={kw}
+              >
+                {kw}
               </span>
-            </h2>
+            ))}
+            {hiddenCount > 0 && (
+              <span className="px-2.5 py-1 rounded-full border border-zinc-600 bg-zinc-800 text-xs text-zinc-400">
+                +{hiddenCount}
+              </span>
+            )}
+
+            <button
+              onClick={() => setFilterModalOpen(true)}
+              className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-600 text-sm text-zinc-300 hover:border-zinc-500 hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 shrink-0"
+            >
+              <SlidersHorizontal size={15} />
+              Filtros
+            </button>
           </div>
+
           <StatsCards data={results} />
           <VideoGrid videos={results.results} />
         </div>
+      )}
+
+      {/* Filter modal */}
+      {filterModalOpen && (
+        <FilterModal
+          niche={niche}
+          selectedKeywords={selectedKeywords}
+          onResults={handleResults}
+          onClose={() => setFilterModalOpen(false)}
+        />
       )}
     </AppShell>
   );
