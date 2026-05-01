@@ -16,6 +16,7 @@ async def generate_keywords(
     service = AIService()
     keywords = await service.generate_keywords(
         niche=request.niche,
+        language=request.language,
         count=12,
     )
     return KeywordResponse(keywords=keywords, niche=request.niche)

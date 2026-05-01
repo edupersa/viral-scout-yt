@@ -37,9 +37,10 @@ export default function Dashboard() {
   const searchesRemaining = Math.max(0, searchLimit - searchesUsed);
   const isBlocked = searchesUsed >= searchLimit;
 
-  function handleKeywordsReady(resolvedNiche: string, keywords: string[]) {
+  function handleKeywordsReady(resolvedNiche: string, keywords: string[], language: string) {
     setNiche(resolvedNiche);
     setSelectedKeywords(keywords);
+    useFilterStore.getState().setFilter("language", language);
     setStep(2);
   }
 

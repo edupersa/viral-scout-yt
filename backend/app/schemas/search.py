@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class KeywordRequest(BaseModel):
     niche: str = Field(min_length=3, max_length=300)
+    language: str | None = Field(None, max_length=10, examples=["en", "es"])
 
 
 class KeywordResponse(BaseModel):

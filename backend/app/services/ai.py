@@ -12,9 +12,20 @@ logger = logging.getLogger(__name__)
 
 _MODEL = "gemini-2.5-flash"
 
+_LANGUAGE_NAMES: dict[str, str] = {
+    "en": "English",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "fr": "French",
+    "de": "German",
+}
+
 _KEYWORD_PROMPT = """\
 You are an expert YouTube content strategist. Generate {count} search keywords \
 to find viral videos in the following niche: "{niche}"
+
+Target language: {language_instruction}
+All keywords MUST be written in that language — do not mix languages.
 
 Rules:
 - Keywords must be specific enough to find real YouTube videos
@@ -40,9 +51,17 @@ class AIService:
     def __init__(self) -> None:
         self._client = genai.Client(api_key=settings.gemini_api_key)
 
-    async def generate_keywords(self, niche: str, count: int = 12) -> list[str]:
+    async def generate_keywords(
+        self, niche: str, language: str | None = None, count: int = 12
+    ) -> list[str]:
         """Generate YouTube search keywords for the given niche using Gemini."""
-        prompt = _KEYWORD_PROMPT.format(niche=niche, count=count)
+        if language and language in _LANGUAGE_NAMES:
+            language_instruction = _LANGUAGE_NAMES[language]
+        else:
+            language_instruction = "the same language as the niche description"
+        prompt = _KEYWORD_PROMPT.format(
+            niche=niche, count=count, language_instruction=language_instruction
+        )
         try:
             raw = self._call_gemini(prompt)
             if raw.startswith("```"):
