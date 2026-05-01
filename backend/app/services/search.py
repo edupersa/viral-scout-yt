@@ -45,7 +45,6 @@ class SearchService:
                 query=kw,
                 max_results=settings.max_search_results,
                 language=filters.language,
-                duration=filters.duration,
                 published_after=published_after,
             )
             for vid_id in ids:
@@ -69,10 +68,12 @@ class SearchService:
         channel_stats = await self._youtube.get_channel_stats(channel_ids)
         enriched = self._youtube.enrich_videos(video_items, channel_stats)
 
-        # Filter by subscribers and views
+        # Post-filter: duration, subscribers, views
         enriched = [
             v for v in enriched
-            if v["subs"] >= filters.min_subs
+            if v["duration_seconds"] >= filters.min_duration
+            and (filters.max_duration is None or v["duration_seconds"] <= filters.max_duration)
+            and v["subs"] >= filters.min_subs
             and (filters.max_subs is None or v["subs"] <= filters.max_subs)
             and v["views"] >= filters.min_views
             and (filters.max_views is None or v["views"] <= filters.max_views)

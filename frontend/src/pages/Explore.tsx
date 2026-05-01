@@ -6,7 +6,7 @@ import { StatsCards } from "../components/ui/StatsCards";
 import { Button } from "../components/ui/Button";
 import { useExplore } from "../api/hooks/useExplore";
 import { getApiErrorMessage } from "../lib/apiError";
-import type { SearchResponse, Duration, DateRange } from "../api/types";
+import type { SearchResponse, DateRange } from "../api/types";
 
 const LANGUAGES = [
   { value: "", label: "Any language" },
@@ -15,13 +15,6 @@ const LANGUAGES = [
   { value: "pt", label: "Portuguese" },
   { value: "fr", label: "French" },
   { value: "de", label: "German" },
-];
-
-const DURATIONS: { value: Duration | ""; label: string }[] = [
-  { value: "", label: "Any duration" },
-  { value: "short", label: "Short (< 4 min)" },
-  { value: "medium", label: "Medium (4–20 min)" },
-  { value: "long", label: "Long (> 20 min)" },
 ];
 
 const DATE_RANGES: { value: DateRange | ""; label: string }[] = [
@@ -60,8 +53,10 @@ function UnlimitedCheckbox({
 
 export default function Explore() {
   const [language, setLanguage] = useState("");
-  const [duration, setDuration] = useState<Duration | "">("");
   const [dateRange, setDateRange] = useState<DateRange | "">("");
+  const [minDuration, setMinDuration] = useState(0);
+  const [maxDuration, setMaxDuration] = useState(60);
+  const [maxDurationLimited, setMaxDurationLimited] = useState(false);
   const [minSubs, setMinSubs] = useState(0);
   const [maxSubs, setMaxSubs] = useState(1_000_000);
   const [maxSubsLimited, setMaxSubsLimited] = useState(false);
@@ -78,7 +73,8 @@ export default function Explore() {
     try {
       const data = await explore({
         language: language || null,
-        duration: (duration as Duration) || null,
+        min_duration: minDuration * 60,
+        max_duration: maxDurationLimited ? maxDuration * 60 : null,
         min_subs: minSubs,
         max_subs: maxSubsLimited ? maxSubs : null,
         min_views: minViews,
@@ -111,7 +107,7 @@ export default function Explore() {
           Filtros
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-zinc-300">Idioma</label>
             <select
@@ -121,19 +117,6 @@ export default function Explore() {
             >
               {LANGUAGES.map((l) => (
                 <option key={l.value} value={l.value}>{l.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-zinc-300">Duración</label>
-            <select
-              value={duration}
-              onChange={(e) => setDuration(e.target.value as Duration | "")}
-              className={selectClass}
-            >
-              {DURATIONS.map((d) => (
-                <option key={d.value} value={d.value}>{d.label}</option>
               ))}
             </select>
           </div>
@@ -149,6 +132,46 @@ export default function Explore() {
                 <option key={d.value} value={d.value}>{d.label}</option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Duration */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-zinc-300">
+            Duración:{" "}
+            <span className="text-zinc-400 font-normal">
+              {minDuration} min –{" "}
+              {maxDurationLimited ? `${maxDuration} min` : "Sin límite"}
+            </span>
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs text-zinc-500">Mínimo (min)</span>
+              <input
+                type="number"
+                min={0}
+                value={minDuration}
+                onChange={(e) => setMinDuration(Number(e.target.value))}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-zinc-500">Máximo (min)</span>
+                <UnlimitedCheckbox
+                  checked={!maxDurationLimited}
+                  onChange={(v) => setMaxDurationLimited(!v)}
+                />
+              </div>
+              <input
+                type="number"
+                min={0}
+                value={maxDuration}
+                disabled={!maxDurationLimited}
+                onChange={(e) => setMaxDuration(Number(e.target.value))}
+                className={inputClass}
+              />
+            </div>
           </div>
         </div>
 

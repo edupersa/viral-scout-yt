@@ -4,7 +4,7 @@ import { useFilterStore } from "../../stores/filterStore";
 import { useSearch } from "../../api/hooks/useSearch";
 import { getApiErrorMessage } from "../../lib/apiError";
 import { Button } from "../ui/Button";
-import type { SearchResponse, Duration, DateRange } from "../../api/types";
+import type { SearchResponse, DateRange } from "../../api/types";
 
 interface FilterPanelProps {
   niche: string;
@@ -19,13 +19,6 @@ const LANGUAGES = [
   { value: "pt", label: "Portuguese" },
   { value: "fr", label: "French" },
   { value: "de", label: "German" },
-];
-
-const DURATIONS: { value: Duration | ""; label: string }[] = [
-  { value: "", label: "Any duration" },
-  { value: "short", label: "Short (< 4 min)" },
-  { value: "medium", label: "Medium (4–20 min)" },
-  { value: "long", label: "Long (> 20 min)" },
 ];
 
 const DATE_RANGES: { value: DateRange | ""; label: string }[] = [
@@ -64,8 +57,11 @@ function UnlimitedCheckbox({
 
 export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelProps) {
   const {
-    language, duration, minSubs, maxSubs, maxSubsLimited,
-    minViews, maxViews, maxViewsLimited, dateRange, setFilter,
+    language,
+    minDuration, maxDuration, maxDurationLimited,
+    minSubs, maxSubs, maxSubsLimited,
+    minViews, maxViews, maxViewsLimited,
+    dateRange, setFilter,
   } = useFilterStore();
   const { mutateAsync: searchVideos, isPending } = useSearch();
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -78,7 +74,8 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         keywords: selectedKeywords,
         filters: {
           language: language || null,
-          duration: (duration as Duration) || null,
+          min_duration: minDuration * 60,
+          max_duration: maxDurationLimited ? maxDuration * 60 : null,
           min_subs: minSubs,
           max_subs: maxSubsLimited ? maxSubs : null,
           min_views: minViews,
@@ -101,7 +98,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-zinc-300">Language</label>
           <select
@@ -111,19 +108,6 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
           >
             {LANGUAGES.map((l) => (
               <option key={l.value} value={l.value}>{l.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-zinc-300">Duration</label>
-          <select
-            value={duration}
-            onChange={(e) => setFilter("duration", e.target.value as Duration | "")}
-            className={selectClass}
-          >
-            {DURATIONS.map((d) => (
-              <option key={d.value} value={d.value}>{d.label}</option>
             ))}
           </select>
         </div>
@@ -139,6 +123,46 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
               <option key={d.value} value={d.value}>{d.label}</option>
             ))}
           </select>
+        </div>
+      </div>
+
+      {/* Duration */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-zinc-300">
+          Duración:{" "}
+          <span className="text-zinc-400 font-normal">
+            {minDuration} min –{" "}
+            {maxDurationLimited ? `${maxDuration} min` : "Sin límite"}
+          </span>
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-zinc-500">Mínimo (min)</span>
+            <input
+              type="number"
+              min={0}
+              value={minDuration}
+              onChange={(e) => setFilter("minDuration", Number(e.target.value))}
+              className={inputClass}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-500">Máximo (min)</span>
+              <UnlimitedCheckbox
+                checked={!maxDurationLimited}
+                onChange={(v) => setFilter("maxDurationLimited", !v)}
+              />
+            </div>
+            <input
+              type="number"
+              min={0}
+              value={maxDuration}
+              disabled={!maxDurationLimited}
+              onChange={(e) => setFilter("maxDuration", Number(e.target.value))}
+              className={inputClass}
+            />
+          </div>
         </div>
       </div>
 

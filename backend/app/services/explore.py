@@ -21,12 +21,6 @@ _LANGUAGE_TO_REGION: dict[str, str] = {
     "de": "DE",
 }
 
-_DURATION_BOUNDS: dict[str, tuple[int, int]] = {
-    "short": (0, 240),
-    "medium": (240, 1200),
-    "long": (1200, 99999),
-}
-
 
 class ExploreService:
     def __init__(self, db: AsyncSession) -> None:
@@ -53,21 +47,18 @@ class ExploreService:
         channel_stats = await self._youtube.get_channel_stats(channel_ids)
         enriched = self._youtube.enrich_videos(video_items, channel_stats)
 
-        # Post-filter: duration
-        if filters.duration:
-            low, high = _DURATION_BOUNDS[filters.duration]
-            enriched = [v for v in enriched if low <= v["duration_seconds"] < high]
-
         # Post-filter: date range
         if filters.date_range:
             days = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}[filters.date_range]
             cutoff = datetime.now(UTC) - timedelta(days=days)
             enriched = [v for v in enriched if v["published_at"] >= cutoff]
 
-        # Post-filter: subscribers and views
+        # Post-filter: duration, subscribers, views
         enriched = [
             v for v in enriched
-            if v["subs"] >= filters.min_subs
+            if v["duration_seconds"] >= filters.min_duration
+            and (filters.max_duration is None or v["duration_seconds"] <= filters.max_duration)
+            and v["subs"] >= filters.min_subs
             and (filters.max_subs is None or v["subs"] <= filters.max_subs)
             and v["views"] >= filters.min_views
             and (filters.max_views is None or v["views"] <= filters.max_views)

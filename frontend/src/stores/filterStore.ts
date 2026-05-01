@@ -1,9 +1,11 @@
 import { create } from "zustand";
-import type { DateRange, Duration } from "../api/types";
+import type { DateRange } from "../api/types";
 
 interface FilterValues {
   language: string;
-  duration: Duration | "";
+  minDuration: number;        // minutes
+  maxDuration: number;        // minutes
+  maxDurationLimited: boolean;
   minSubs: number;
   maxSubs: number;
   maxSubsLimited: boolean;
@@ -22,7 +24,9 @@ type FilterState = FilterValues & FilterActions;
 
 const DEFAULT_FILTERS: FilterValues = {
   language: "",
-  duration: "",
+  minDuration: 0,
+  maxDuration: 60,
+  maxDurationLimited: false,
   minSubs: 0,
   maxSubs: 1_000_000,
   maxSubsLimited: false,

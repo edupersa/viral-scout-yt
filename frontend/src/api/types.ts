@@ -27,13 +27,13 @@ export interface KeywordResponse {
   niche: string;
 }
 
-export type Duration = "short" | "medium" | "long";
 export type DateRange = "7d" | "30d" | "90d" | "365d";
 export type ViralityClass = "ultra_viral" | "very_viral" | "normal";
 
 export interface SearchFilters {
   language: string | null;
-  duration: Duration | null;
+  min_duration: number;       // seconds
+  max_duration: number | null; // seconds, null = no limit
   min_subs: number;
   max_subs: number | null;
   min_views: number;
