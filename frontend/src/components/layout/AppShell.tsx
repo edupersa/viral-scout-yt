@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, History, LogOut } from "lucide-react";
+import { LayoutDashboard, History, LogOut, TrendingUp } from "lucide-react";
 import { useCurrentUser, useLogout } from "../../api/hooks/useAuth";
 
 interface AppShellProps {
@@ -8,6 +8,7 @@ interface AppShellProps {
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/explore", label: "Explorar", icon: TrendingUp },
   { to: "/history", label: "History", icon: History },
 ];
 

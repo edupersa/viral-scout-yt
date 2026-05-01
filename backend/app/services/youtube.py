@@ -63,6 +63,24 @@ class YouTubeService:
         self.quota_used += 100
         return [item["id"]["videoId"] for item in data.get("items", [])]
 
+    async def get_trending_videos(
+        self,
+        max_results: int = 50,
+        region_code: str | None = None,
+    ) -> list[dict]:
+        """videos.list with chart=mostPopular — costs 1 quota unit."""
+        params: dict = {
+            "key": self._api_key,
+            "part": "snippet,statistics,contentDetails",
+            "chart": "mostPopular",
+            "maxResults": min(max_results, 50),
+        }
+        if region_code:
+            params["regionCode"] = region_code
+        data = await self._get("videos", params)
+        self.quota_used += 1
+        return data.get("items", [])
+
     async def get_video_details(self, video_ids: list[str]) -> list[dict]:
         """videos.list — costs 1 quota unit per batch of 50."""
         if not video_ids:

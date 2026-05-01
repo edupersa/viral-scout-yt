@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import auth, keywords, search
+from app.api import auth, explore, keywords, search
 from app.config import settings
 from app.database import engine
 from app.exceptions import AppException
@@ -52,6 +52,7 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
 app.include_router(auth.router, prefix=settings.api_v1_prefix)
 app.include_router(keywords.router, prefix=settings.api_v1_prefix)
 app.include_router(search.router, prefix=settings.api_v1_prefix)
+app.include_router(explore.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health", tags=["health"])

@@ -21,6 +21,10 @@ class SearchFilters(BaseModel):
     date_range: Literal["7d", "30d", "90d", "365d"] | None = None
 
 
+class ExploreRequest(BaseModel):
+    filters: SearchFilters = Field(default_factory=SearchFilters)
+
+
 class SearchRequest(BaseModel):
     niche: str = Field(min_length=3, max_length=300)
     keywords: list[str] = Field(min_length=1, max_length=12)

@@ -5,6 +5,7 @@ const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Explore = lazy(() => import("./pages/Explore"));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const hasToken = !!localStorage.getItem("auth_token");
@@ -32,6 +33,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/explore"
+          element={
+            <ProtectedRoute>
+              <Explore />
             </ProtectedRoute>
           }
         />
