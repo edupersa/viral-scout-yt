@@ -65,21 +65,36 @@ class YouTubeService:
 
     async def get_trending_videos(
         self,
-        max_results: int = 50,
+        max_results: int = 200,
         region_code: str | None = None,
     ) -> list[dict]:
-        """videos.list with chart=mostPopular — costs 1 quota unit."""
-        params: dict = {
-            "key": self._api_key,
-            "part": "snippet,statistics,contentDetails",
-            "chart": "mostPopular",
-            "maxResults": min(max_results, 50),
-        }
-        if region_code:
-            params["regionCode"] = region_code
-        data = await self._get("videos", params)
-        self.quota_used += 1
-        return data.get("items", [])
+        """videos.list with chart=mostPopular — costs 1 quota unit per page of 50."""
+        items: list[dict] = []
+        page_token: str | None = None
+        remaining = max_results
+
+        while remaining > 0:
+            params: dict = {
+                "key": self._api_key,
+                "part": "snippet,statistics,contentDetails",
+                "chart": "mostPopular",
+                "maxResults": min(remaining, 50),
+            }
+            if region_code:
+                params["regionCode"] = region_code
+            if page_token:
+                params["pageToken"] = page_token
+
+            data = await self._get("videos", params)
+            self.quota_used += 1
+            items.extend(data.get("items", []))
+
+            page_token = data.get("nextPageToken")
+            remaining -= 50
+            if not page_token:
+                break
+
+        return items
 
     async def get_video_details(self, video_ids: list[str]) -> list[dict]:
         """videos.list — costs 1 quota unit per batch of 50."""

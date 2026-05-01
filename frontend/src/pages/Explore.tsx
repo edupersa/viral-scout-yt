@@ -286,7 +286,18 @@ export default function Explore() {
       </div>
 
       {/* Results */}
-      {results && (
+      {results && results.total === 0 && (
+        <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/50 p-10 text-center">
+          <p className="text-zinc-300 font-medium mb-1">Sin resultados con estos filtros</p>
+          <p className="text-sm text-zinc-500 max-w-md mx-auto">
+            El pool de videos tendencia es limitado. Intenta ampliar los filtros: sube el máximo
+            de suscriptores, cambia la categoría de duración a "Cualquiera" o reduce el mínimo
+            de visitas.
+          </p>
+        </div>
+      )}
+
+      {results && results.total > 0 && (
         <div className="space-y-6 mt-8">
           <h2 className="text-xl font-bold text-zinc-100">
             Resultados

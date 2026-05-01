@@ -35,7 +35,7 @@ class ExploreService:
         region_code = _LANGUAGE_TO_REGION.get(filters.language or "")
 
         video_items = await self._youtube.get_trending_videos(
-            max_results=50,
+            max_results=200,
             region_code=region_code,
         )
 
