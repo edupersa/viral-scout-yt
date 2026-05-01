@@ -6,6 +6,7 @@ interface FilterValues {
   duration: Duration | "";
   minSubs: number;
   maxSubs: number;
+  minViews: number;
   dateRange: DateRange | "";
 }
 
@@ -21,6 +22,7 @@ const DEFAULT_FILTERS: FilterValues = {
   duration: "",
   minSubs: 0,
   maxSubs: 10_000_000,
+  minViews: 0,
   dateRange: "",
 };
 

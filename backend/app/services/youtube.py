@@ -114,6 +114,9 @@ class YouTubeService:
         """Merge video details with channel stats and compute outlier scores."""
         enriched = []
         for item in video_items:
+            # Skip unavailable videos (private, deleted, or region-restricted)
+            if "viewCount" not in item.get("statistics", {}):
+                continue
             snippet = item.get("snippet", {})
             stats = item.get("statistics", {})
             details = item.get("contentDetails", {})

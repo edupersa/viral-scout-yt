@@ -19,6 +19,7 @@ class SearchFilters(BaseModel):
     duration: Literal["short", "medium", "long"] | None = None
     min_subs: int = Field(0, ge=0)
     max_subs: int = Field(10_000_000, ge=0)
+    min_views: int = Field(0, ge=0)
     date_range: Literal["7d", "30d", "90d", "365d"] | None = None
 
 

@@ -4,6 +4,9 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.exceptions import SearchLimitReachedException
+from app.models.user import User
+from app.repositories.user_repository import UserRepository
 from app.schemas.search import SearchFilters, SearchResponse, VideoResult
 from app.services.analyzer import classify_virality
 from app.services.youtube import YouTubeService
@@ -27,9 +30,14 @@ _DURATION_BOUNDS: dict[str, tuple[int, int]] = {
 
 class ExploreService:
     def __init__(self, db: AsyncSession) -> None:
+        self._db = db
         self._youtube = YouTubeService(settings.youtube_api_key)
+        self._user_repo = UserRepository(db)
 
-    async def explore(self, filters: SearchFilters) -> SearchResponse:
+    async def explore(self, user: User, filters: SearchFilters) -> SearchResponse:
+        if user.searches_used >= user.search_limit:
+            raise SearchLimitReachedException(user.searches_used, user.search_limit)
+
         region_code = _LANGUAGE_TO_REGION.get(filters.language or "")
 
         video_items = await self._youtube.get_trending_videos(
@@ -38,6 +46,7 @@ class ExploreService:
         )
 
         if not video_items:
+            await self._user_repo.increment_search_count(user.id)
             return SearchResponse(results=[], total=0, quota_used=self._youtube.quota_used)
 
         channel_ids = [v["snippet"]["channelId"] for v in video_items]
@@ -55,11 +64,14 @@ class ExploreService:
             cutoff = datetime.now(UTC) - timedelta(days=days)
             enriched = [v for v in enriched if v["published_at"] >= cutoff]
 
-        # Post-filter: subscribers
+        # Post-filter: subscribers and views
         enriched = [
             v for v in enriched
             if filters.min_subs <= v["subs"] <= filters.max_subs
+            and v["views"] >= filters.min_views
         ]
+
+        await self._user_repo.increment_search_count(user.id)
 
         results = [
             VideoResult(

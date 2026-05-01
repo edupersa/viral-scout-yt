@@ -40,7 +40,7 @@ class SearchService:
         # Search top 3 keywords separately and combine — avoids oversized queries
         seen: set[str] = set()
         video_ids: list[str] = []
-        for kw in keywords[:3]:
+        for kw in keywords[:5]:
             ids = await self._youtube.search_video_ids(
                 query=kw,
                 max_results=settings.max_search_results,
@@ -69,10 +69,11 @@ class SearchService:
         channel_stats = await self._youtube.get_channel_stats(channel_ids)
         enriched = self._youtube.enrich_videos(video_items, channel_stats)
 
-        # Filter by subscribers
+        # Filter by subscribers and views
         enriched = [
             v for v in enriched
             if filters.min_subs <= v["subs"] <= filters.max_subs
+            and v["views"] >= filters.min_views
         ]
 
         saved_videos = await self._video_repo.upsert_many(enriched)

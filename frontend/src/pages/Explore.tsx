@@ -41,6 +41,7 @@ export default function Explore() {
   const [dateRange, setDateRange] = useState<DateRange | "">("");
   const [minSubs, setMinSubs] = useState(0);
   const [maxSubs, setMaxSubs] = useState(10_000_000);
+  const [minViews, setMinViews] = useState(0);
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,7 @@ export default function Explore() {
         duration: (duration as Duration) || null,
         min_subs: minSubs,
         max_subs: maxSubs,
+        min_views: minViews,
         date_range: (dateRange as DateRange) || null,
       });
       setResults(data);
@@ -158,6 +160,20 @@ export default function Explore() {
               />
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-zinc-300">
+            Visitas mínimas:{" "}
+            <span className="text-zinc-400 font-normal">{minViews.toLocaleString()}</span>
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={minViews}
+            onChange={(e) => setMinViews(Number(e.target.value))}
+            className={selectClass}
+          />
         </div>
 
         {error && <p className="text-sm text-red-400">{error}</p>}

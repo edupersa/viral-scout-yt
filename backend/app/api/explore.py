@@ -17,4 +17,4 @@ async def explore_trending(
     db: AsyncSession = Depends(get_db),
 ) -> SearchResponse:
     service = ExploreService(db)
-    return await service.explore(filters=request.filters)
+    return await service.explore(user=current_user, filters=request.filters)

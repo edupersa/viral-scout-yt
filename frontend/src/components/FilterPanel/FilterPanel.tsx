@@ -40,7 +40,7 @@ const selectClass =
   "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500 hover:border-zinc-600 transition-colors";
 
 export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelProps) {
-  const { language, duration, minSubs, maxSubs, dateRange, setFilter } = useFilterStore();
+  const { language, duration, minSubs, maxSubs, minViews, dateRange, setFilter } = useFilterStore();
   const { mutateAsync: searchVideos, isPending } = useSearch();
   const [searchError, setSearchError] = useState<string | null>(null);
 
@@ -55,6 +55,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
           duration: (duration as Duration) || null,
           min_subs: minSubs,
           max_subs: maxSubs,
+          min_views: minViews,
           date_range: (dateRange as DateRange) || null,
         },
       });
@@ -149,6 +150,20 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
             />
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-zinc-300">
+          Min. Views:{" "}
+          <span className="text-zinc-400 font-normal">{minViews.toLocaleString()}</span>
+        </label>
+        <input
+          type="number"
+          min={0}
+          value={minViews}
+          onChange={(e) => setFilter("minViews", Number(e.target.value))}
+          className={selectClass}
+        />
       </div>
 
       {searchError && <p className="text-sm text-red-400">{searchError}</p>}
