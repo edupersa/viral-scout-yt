@@ -1,4 +1,9 @@
+#######################################################################
+## GENERAL 
 ##############
+docker compose up --build
+
+#######################################################################
 ## BACKEND 
 ##############
 # Restart
@@ -10,7 +15,7 @@ docker compose up --build backend
 # Ver logs (30)
 docker compose logs backend --tail=30
 
-##############
+#######################################################################
 ## FRONTEND 
 ##############
 # Restart
@@ -22,7 +27,7 @@ docker compose up --build frontend
 # Ver logs (30)
 docker compose logs backend --tail=30
 
-##############
+#######################################################################
 ## BDD 
 ##############
 # Ejecutar Migraciones
