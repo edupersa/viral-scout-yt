@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     youtube_daily_quota: int = 10_000
     max_keywords_per_request: int = 12
     max_search_results: int = 50
+    free_search_limit: int = 5
+
+    # Admin
+    admin_email: str = ""
 
 
 settings = Settings()

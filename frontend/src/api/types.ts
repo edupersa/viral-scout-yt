@@ -2,6 +2,8 @@ export interface UserResponse {
   id: number;
   email: string;
   is_active: boolean;
+  searches_used: number;
+  search_limit: number;
   created_at: string;
 }
 

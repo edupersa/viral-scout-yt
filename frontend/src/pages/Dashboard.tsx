@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, AlertCircle, Mail } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { KeywordGenerator } from "../components/KeywordGenerator";
 import { FilterPanel } from "../components/FilterPanel";
@@ -7,6 +7,7 @@ import { FilterModal } from "../components/FilterModal";
 import { VideoGrid } from "../components/VideoGrid";
 import { StatsCards } from "../components/ui/StatsCards";
 import { useFilterStore } from "../stores/filterStore";
+import { useCurrentUser } from "../api/hooks/useAuth";
 import type { SearchResponse } from "../api/types";
 
 type Step = 1 | 2 | 3;
@@ -29,6 +30,12 @@ export default function Dashboard() {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   const language = useFilterStore((s) => s.language);
+  const { data: currentUser } = useCurrentUser();
+
+  const searchesUsed = currentUser?.searches_used ?? 0;
+  const searchLimit = currentUser?.search_limit ?? 5;
+  const searchesRemaining = Math.max(0, searchLimit - searchesUsed);
+  const isBlocked = searchesUsed >= searchLimit;
 
   function handleKeywordsReady(resolvedNiche: string, keywords: string[]) {
     setNiche(resolvedNiche);
@@ -51,10 +58,17 @@ export default function Dashboard() {
   const visibleKeywords = selectedKeywords.slice(0, MAX_VISIBLE_KEYWORDS);
   const hiddenCount = selectedKeywords.length - MAX_VISIBLE_KEYWORDS;
 
+  const quotaBadgeColor =
+    searchesRemaining === 0
+      ? "bg-red-500/15 text-red-400 border-red-800"
+      : searchesRemaining <= 2
+        ? "bg-amber-500/15 text-amber-400 border-amber-800"
+        : "bg-zinc-800 text-zinc-400 border-zinc-700";
+
   return (
     <AppShell>
-      {/* Stepper */}
-      <div className="flex items-center gap-2 mb-8 text-sm">
+      {/* Stepper + quota badge */}
+      <div className="flex items-center gap-2 mb-8 text-sm flex-wrap">
         {(["1. Keywords", "2. Filters", "3. Results"] as const).map((label, i) => {
           const s = (i + 1) as Step;
           return (
@@ -74,15 +88,48 @@ export default function Dashboard() {
             </span>
           );
         })}
+
+        {/* Quota badge */}
+        {currentUser && (
+          <span
+            className={`ml-auto px-3 py-1 rounded-full text-xs font-medium border ${quotaBadgeColor}`}
+          >
+            {searchesRemaining}/{searchLimit} búsquedas restantes
+          </span>
+        )}
+
         {step > 1 && (
           <button
             onClick={restart}
-            className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-2"
+            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-2"
           >
             Start over
           </button>
         )}
       </div>
+
+      {/* Blocked banner — shown in all steps when limit is reached */}
+      {isBlocked && step < 3 && (
+        <div className="mb-6 rounded-xl border border-red-800 bg-red-900/20 p-5 flex gap-4 items-start">
+          <AlertCircle size={20} className="text-red-400 shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-red-300">
+              Límite de búsquedas alcanzado
+            </p>
+            <p className="text-sm text-zinc-400 mt-1">
+              Has utilizado las {searchLimit} búsquedas gratuitas. Contacta al
+              administrador para ampliar tu acceso o esperar a que te lo reactiven.
+            </p>
+          </div>
+          <a
+            href="mailto:leperazas@gmail.com"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-700 text-xs text-red-300 hover:bg-red-800/30 transition-colors"
+          >
+            <Mail size={13} />
+            Contactar
+          </a>
+        </div>
+      )}
 
       {/* Step 1: Keyword Generation */}
       {step === 1 && (

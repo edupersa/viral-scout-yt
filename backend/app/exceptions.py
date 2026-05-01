@@ -31,6 +31,16 @@ class QuotaExceededException(AppException):
         super().__init__("YouTube API daily quota exceeded", "QUOTA_EXCEEDED", 429)
 
 
+class SearchLimitReachedException(AppException):
+    def __init__(self, used: int, limit: int) -> None:
+        super().__init__(
+            f"Has alcanzado el límite de {limit} búsquedas gratuitas. "
+            "Contacta al administrador para ampliar tu acceso.",
+            "SEARCH_LIMIT_REACHED",
+            403,
+        )
+
+
 class ExternalServiceException(AppException):
     def __init__(self, service: str, detail: str) -> None:
         super().__init__(f"{service} error: {detail}", "EXTERNAL_ERROR", 502)

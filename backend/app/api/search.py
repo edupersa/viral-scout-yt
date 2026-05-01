@@ -24,7 +24,7 @@ async def search_videos(
 ) -> SearchResponse:
     service = SearchService(db)
     return await service.execute_search(
-        user_id=current_user.id,
+        user=current_user,
         niche=request.niche,
         keywords=request.keywords,
         filters=request.filters,
