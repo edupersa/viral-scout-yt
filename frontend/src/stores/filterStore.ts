@@ -29,7 +29,7 @@ const DEFAULT_FILTERS: FilterValues = {
   minDuration: 0,
   maxDuration: 60,
   maxDurationLimited: false,
-  minSubs: 0,
+  minSubs: 1,
   maxSubs: 1_000_000,
   maxSubsLimited: false,
   minViews: 0,

@@ -12,13 +12,6 @@ interface FilterPanelProps {
   onResults: (data: SearchResponse) => void;
 }
 
-const DURATIONS: { value: Duration | ""; label: string }[] = [
-  { value: "", label: "Cualquiera" },
-  { value: "short", label: "Corto (< 4 min)" },
-  { value: "medium", label: "Medio (4–20 min)" },
-  { value: "long", label: "Largo (> 20 min)" },
-];
-
 const LANGUAGES = [
   { value: "", label: "Any language" },
   { value: "en", label: "English" },
@@ -26,6 +19,13 @@ const LANGUAGES = [
   { value: "pt", label: "Portuguese" },
   { value: "fr", label: "French" },
   { value: "de", label: "German" },
+];
+
+const DURATIONS: { value: Duration | ""; label: string }[] = [
+  { value: "", label: "Cualquiera" },
+  { value: "short", label: "Corto (< 4 min)" },
+  { value: "medium", label: "Medio (4–20 min)" },
+  { value: "long", label: "Largo (> 20 min)" },
 ];
 
 const DATE_RANGES: { value: DateRange | ""; label: string }[] = [
@@ -41,6 +41,17 @@ const inputClass =
 
 const selectClass =
   "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500 hover:border-zinc-600 transition-colors";
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 pt-1">
+      <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 whitespace-nowrap">
+        {children}
+      </span>
+      <div className="flex-1 h-px bg-zinc-800" />
+    </div>
+  );
+}
 
 function UnlimitedCheckbox({
   checked,
@@ -98,17 +109,16 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-zinc-100">Configure Filters</h2>
-        <p className="text-sm text-zinc-500 mt-1">
-          Narrow down results by language, duration, and channel size.
-        </p>
-      </div>
+    <div className="space-y-5">
+      {/* ── Filtros YouTube (pre-búsqueda) ── */}
+      <SectionLabel>Filtros YouTube · pre-búsqueda</SectionLabel>
+      <p className="text-xs text-zinc-500 -mt-2">
+        Se envían a YouTube antes de recibir resultados. Reducen el pool de videos al origen.
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-zinc-300">Language</label>
+          <label className="text-sm font-medium text-zinc-300">Idioma</label>
           <select
             value={language}
             onChange={(e) => setFilter("language", e.target.value)}
@@ -121,10 +131,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-zinc-300">
-            Categoría de duración
-            <span className="ml-1 text-xs font-normal text-zinc-500">(YouTube)</span>
-          </label>
+          <label className="text-sm font-medium text-zinc-300">Categoría de duración</label>
           <select
             value={duration}
             onChange={(e) => setFilter("duration", e.target.value as Duration | "")}
@@ -137,7 +144,7 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-zinc-300">Date Range</label>
+          <label className="text-sm font-medium text-zinc-300">Fecha de publicación</label>
           <select
             value={dateRange}
             onChange={(e) => setFilter("dateRange", e.target.value as DateRange | "")}
@@ -150,12 +157,16 @@ export function FilterPanel({ niche, selectedKeywords, onResults }: FilterPanelP
         </div>
       </div>
 
-      {/* Duration fine-grained */}
+      {/* ── Filtros ViralScout (sobre resultados) ── */}
+      <SectionLabel>Filtros ViralScout · sobre resultados</SectionLabel>
+      <p className="text-xs text-zinc-500 -mt-2">
+        Se aplican a los videos ya recibidos. Permiten rangos exactos que YouTube no soporta.
+      </p>
+
+      {/* Exact duration */}
       <div className="space-y-2">
         <p className="text-sm font-medium text-zinc-300">
-          Duración exacta
-          <span className="ml-1 text-xs font-normal text-zinc-500">(filtro preciso)</span>
-          {": "}
+          Duración exacta:{" "}
           <span className="text-zinc-400 font-normal">
             {minDuration} min –{" "}
             {maxDurationLimited ? `${maxDuration} min` : "Sin límite"}

@@ -21,6 +21,17 @@ _LANGUAGE_TO_REGION: dict[str, str] = {
     "de": "DE",
 }
 
+_DURATION_BOUNDS: dict[str, tuple[int, int]] = {
+    "short": (0, 240),
+    "medium": (240, 1200),
+    "long": (1200, 99_999),
+}
+
+# Stop fetching when we reach this many filtered results
+_TARGET_RESULTS = 50
+# Hard cap on pages to avoid burning quota (each page = ~2 units: videos + channels)
+_MAX_PAGES = 8
+
 
 class ExploreService:
     def __init__(self, db: AsyncSession) -> None:
@@ -34,51 +45,45 @@ class ExploreService:
 
         region_code = _LANGUAGE_TO_REGION.get(filters.language or "")
 
-        video_items = await self._youtube.get_trending_videos(
-            max_results=200,
-            region_code=region_code,
-        )
+        # ── Layer 1: YouTube API pre-filter ──────────────────────────────────
+        # Only regionCode is supported by chart=mostPopular.
+        # All other filters are applied by our app after receiving results.
 
-        if not video_items:
-            await self._user_repo.increment_search_count(user.id)
-            return SearchResponse(results=[], total=0, quota_used=self._youtube.quota_used)
+        # ── Layer 2: fetch pages iteratively, stop when target reached ───────
+        accumulated: list[dict] = []
+        page_token: str | None = None
 
-        channel_ids = [v["snippet"]["channelId"] for v in video_items]
-        channel_stats = await self._youtube.get_channel_stats(channel_ids)
-        enriched = self._youtube.enrich_videos(video_items, channel_stats)
+        for _ in range(_MAX_PAGES):
+            video_items, next_token = await self._youtube.get_trending_page(
+                region_code=region_code,
+                page_token=page_token,
+            )
 
-        # Post-filter: duration category (same bounds YouTube uses internally)
-        _DURATION_BOUNDS = {"short": (0, 240), "medium": (240, 1200), "long": (1200, 99_999)}
-        if filters.duration:
-            low, high = _DURATION_BOUNDS[filters.duration]
-            enriched = [v for v in enriched if low <= v["duration_seconds"] < high]
+            if not video_items:
+                break
 
-        # Post-filter: date range
-        if filters.date_range:
-            days = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}[filters.date_range]
-            cutoff = datetime.now(UTC) - timedelta(days=days)
-            enriched = [v for v in enriched if v["published_at"] >= cutoff]
+            channel_ids = [v["snippet"]["channelId"] for v in video_items]
+            channel_stats = await self._youtube.get_channel_stats(channel_ids)
+            enriched = self._youtube.enrich_videos(video_items, channel_stats)
 
-        # Post-filter: duration, subscribers, views
-        enriched = [
-            v for v in enriched
-            if v["duration_seconds"] >= filters.min_duration
-            and (filters.max_duration is None or v["duration_seconds"] <= filters.max_duration)
-            and v["subs"] >= filters.min_subs
-            and (filters.max_subs is None or v["subs"] <= filters.max_subs)
-            and v["views"] >= filters.min_views
-            and (filters.max_views is None or v["views"] <= filters.max_views)
-        ]
+            # ── Layer 2: ViralScout post-filters ─────────────────────────────
+            filtered = self._apply_post_filters(enriched, filters)
+            accumulated.extend(filtered)
+
+            page_token = next_token
+            if not page_token or len(accumulated) >= _TARGET_RESULTS:
+                break
 
         await self._user_repo.increment_search_count(user.id)
 
+        final = accumulated[:_TARGET_RESULTS]
         results = [
             VideoResult(
                 **{k: v for k, v in item.items() if k != "virality_class"},
                 id=idx + 1,
                 virality_class=classify_virality(item["outlier_score"]),
             )
-            for idx, item in enumerate(enriched)
+            for idx, item in enumerate(final)
         ]
 
         logger.info(
@@ -91,3 +96,36 @@ class ExploreService:
             total=len(results),
             quota_used=self._youtube.quota_used,
         )
+
+    def _apply_post_filters(self, enriched: list[dict], filters: SearchFilters) -> list[dict]:
+        result = enriched
+
+        # Duration category
+        if filters.duration:
+            low, high = _DURATION_BOUNDS[filters.duration]
+            result = [v for v in result if low <= v["duration_seconds"] < high]
+
+        # Date range
+        if filters.date_range:
+            days = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}[filters.date_range]
+            cutoff = datetime.now(UTC) - timedelta(days=days)
+            result = [v for v in result if v["published_at"] >= cutoff]
+
+        # Exact duration range (minutes converted to seconds upstream)
+        if filters.min_duration > 0 or filters.max_duration is not None:
+            result = [
+                v for v in result
+                if v["duration_seconds"] >= filters.min_duration
+                and (filters.max_duration is None or v["duration_seconds"] <= filters.max_duration)
+            ]
+
+        # Subscribers and views
+        result = [
+            v for v in result
+            if v["subs"] >= filters.min_subs
+            and (filters.max_subs is None or v["subs"] <= filters.max_subs)
+            and v["views"] >= filters.min_views
+            and (filters.max_views is None or v["views"] <= filters.max_views)
+        ]
+
+        return result

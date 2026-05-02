@@ -38,6 +38,17 @@ const inputClass =
 const selectClass =
   "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500 hover:border-zinc-600 transition-colors";
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 pt-1">
+      <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 whitespace-nowrap">
+        {children}
+      </span>
+      <div className="flex-1 h-px bg-zinc-800" />
+    </div>
+  );
+}
+
 function UnlimitedCheckbox({
   checked,
   onChange,
@@ -59,18 +70,22 @@ function UnlimitedCheckbox({
 }
 
 export default function Explore() {
+  // ── Filtros YouTube (pre-request) ──
   const [language, setLanguage] = useState("");
+
+  // ── Filtros ViralScout (post-processing) ──
   const [duration, setDuration] = useState<Duration | "">("");
   const [dateRange, setDateRange] = useState<DateRange | "">("");
   const [minDuration, setMinDuration] = useState(0);
   const [maxDuration, setMaxDuration] = useState(60);
   const [maxDurationLimited, setMaxDurationLimited] = useState(false);
-  const [minSubs, setMinSubs] = useState(0);
+  const [minSubs, setMinSubs] = useState(1);
   const [maxSubs, setMaxSubs] = useState(1_000_000);
   const [maxSubsLimited, setMaxSubsLimited] = useState(false);
   const [minViews, setMinViews] = useState(0);
   const [maxViews, setMaxViews] = useState(1_000_000);
   const [maxViewsLimited, setMaxViewsLimited] = useState(false);
+
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,25 +126,35 @@ export default function Explore() {
       </div>
 
       {/* Filters */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-6">
-        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-          Filtros
-        </h2>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-5">
+        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">Filtros</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-zinc-300">Idioma</label>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className={selectClass}
-            >
-              {LANGUAGES.map((l) => (
-                <option key={l.value} value={l.value}>{l.label}</option>
-              ))}
-            </select>
-          </div>
+        {/* ── Filtros YouTube ── */}
+        <SectionLabel>Filtros YouTube · pre-request</SectionLabel>
+        <p className="text-xs text-zinc-500 -mt-2">
+          Se envían a YouTube al pedir los videos. Solo el idioma aplica como pre-filtro en Explorar.
+        </p>
 
+        <div className="flex flex-col gap-1.5 max-w-sm">
+          <label className="text-sm font-medium text-zinc-300">Idioma / Región</label>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className={selectClass}
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l.value} value={l.value}>{l.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* ── Filtros ViralScout ── */}
+        <SectionLabel>Filtros ViralScout · sobre resultados</SectionLabel>
+        <p className="text-xs text-zinc-500 -mt-2">
+          Se aplican a los videos recibidos de YouTube. Iteramos páginas hasta encontrar {50} resultados.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-zinc-300">Categoría de duración</label>
             <select
@@ -144,7 +169,7 @@ export default function Explore() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-zinc-300">Publicación</label>
+            <label className="text-sm font-medium text-zinc-300">Fecha de publicación</label>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as DateRange | "")}
@@ -157,10 +182,10 @@ export default function Explore() {
           </div>
         </div>
 
-        {/* Duration */}
+        {/* Exact duration */}
         <div className="space-y-2">
           <p className="text-sm font-medium text-zinc-300">
-            Duración:{" "}
+            Duración exacta:{" "}
             <span className="text-zinc-400 font-normal">
               {minDuration} min –{" "}
               {maxDurationLimited ? `${maxDuration} min` : "Sin límite"}
@@ -170,9 +195,7 @@ export default function Explore() {
             <div className="flex flex-col gap-1.5">
               <span className="text-xs text-zinc-500">Mínimo (min)</span>
               <input
-                type="number"
-                min={0}
-                value={minDuration}
+                type="number" min={0} value={minDuration}
                 onChange={(e) => setMinDuration(Number(e.target.value))}
                 className={inputClass}
               />
@@ -180,15 +203,10 @@ export default function Explore() {
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-zinc-500">Máximo (min)</span>
-                <UnlimitedCheckbox
-                  checked={!maxDurationLimited}
-                  onChange={(v) => setMaxDurationLimited(!v)}
-                />
+                <UnlimitedCheckbox checked={!maxDurationLimited} onChange={(v) => setMaxDurationLimited(!v)} />
               </div>
               <input
-                type="number"
-                min={0}
-                value={maxDuration}
+                type="number" min={0} value={maxDuration}
                 disabled={!maxDurationLimited}
                 onChange={(e) => setMaxDuration(Number(e.target.value))}
                 className={inputClass}
@@ -210,9 +228,7 @@ export default function Explore() {
             <div className="flex flex-col gap-1.5">
               <span className="text-xs text-zinc-500">Mínimo</span>
               <input
-                type="number"
-                min={0}
-                value={minSubs}
+                type="number" min={0} value={minSubs}
                 onChange={(e) => setMinSubs(Number(e.target.value))}
                 className={inputClass}
               />
@@ -220,15 +236,10 @@ export default function Explore() {
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-zinc-500">Máximo</span>
-                <UnlimitedCheckbox
-                  checked={!maxSubsLimited}
-                  onChange={(v) => setMaxSubsLimited(!v)}
-                />
+                <UnlimitedCheckbox checked={!maxSubsLimited} onChange={(v) => setMaxSubsLimited(!v)} />
               </div>
               <input
-                type="number"
-                min={0}
-                value={maxSubs}
+                type="number" min={0} value={maxSubs}
                 disabled={!maxSubsLimited}
                 onChange={(e) => setMaxSubs(Number(e.target.value))}
                 className={inputClass}
@@ -250,9 +261,7 @@ export default function Explore() {
             <div className="flex flex-col gap-1.5">
               <span className="text-xs text-zinc-500">Mínimo</span>
               <input
-                type="number"
-                min={0}
-                value={minViews}
+                type="number" min={0} value={minViews}
                 onChange={(e) => setMinViews(Number(e.target.value))}
                 className={inputClass}
               />
@@ -260,15 +269,10 @@ export default function Explore() {
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-zinc-500">Máximo</span>
-                <UnlimitedCheckbox
-                  checked={!maxViewsLimited}
-                  onChange={(v) => setMaxViewsLimited(!v)}
-                />
+                <UnlimitedCheckbox checked={!maxViewsLimited} onChange={(v) => setMaxViewsLimited(!v)} />
               </div>
               <input
-                type="number"
-                min={0}
-                value={maxViews}
+                type="number" min={0} value={maxViews}
                 disabled={!maxViewsLimited}
                 onChange={(e) => setMaxViews(Number(e.target.value))}
                 className={inputClass}
@@ -285,18 +289,19 @@ export default function Explore() {
         </Button>
       </div>
 
-      {/* Results */}
+      {/* Empty state */}
       {results && results.total === 0 && (
         <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/50 p-10 text-center">
           <p className="text-zinc-300 font-medium mb-1">Sin resultados con estos filtros</p>
           <p className="text-sm text-zinc-500 max-w-md mx-auto">
-            El pool de videos tendencia es limitado. Intenta ampliar los filtros: sube el máximo
-            de suscriptores, cambia la categoría de duración a "Cualquiera" o reduce el mínimo
-            de visitas.
+            Se iteraron todas las páginas disponibles de YouTube sin alcanzar 50 resultados.
+            Prueba ampliando los filtros ViralScout: sube el mínimo de suscriptores, cambia la
+            categoría de duración a "Cualquiera" o elimina el filtro de fecha.
           </p>
         </div>
       )}
 
+      {/* Results */}
       {results && results.total > 0 && (
         <div className="space-y-6 mt-8">
           <h2 className="text-xl font-bold text-zinc-100">

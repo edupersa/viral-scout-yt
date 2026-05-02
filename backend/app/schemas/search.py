@@ -19,7 +19,7 @@ class SearchFilters(BaseModel):
     duration: Literal["short", "medium", "long"] | None = None  # YouTube API pre-filter
     min_duration: int = Field(0, ge=0)           # seconds, app-level post-filter
     max_duration: int | None = Field(None, ge=0)  # seconds, None = no limit
-    min_subs: int = Field(0, ge=0)
+    min_subs: int = Field(1, ge=0)
     max_subs: int | None = Field(None, ge=0)      # None = no limit
     min_views: int = Field(0, ge=0)
     max_views: int | None = Field(None, ge=0)     # None = no limit
