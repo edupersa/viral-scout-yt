@@ -1,8 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
 import type { VideoResult } from "../../api/types";
 import { VideoCard } from "./VideoCard";
-
-type SortKey = "views" | "outlier_score" | "subs" | "published_at";
+import { useVideoSort } from "../../hooks/useVideoSort";
+import type { SortKey } from "../../hooks/useVideoSort";
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "outlier_score", label: "Outlier" },
@@ -16,29 +15,7 @@ interface VideoGridProps {
 }
 
 export function VideoGrid({ videos }: VideoGridProps) {
-  const [sortBy, setSortBy] = useState<SortKey>("outlier_score");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-
-  const sorted = useMemo(() => {
-    return [...videos].sort((a, b) => {
-      const mul = sortDir === "desc" ? -1 : 1;
-      const aVal = sortBy === "published_at" ? new Date(a[sortBy]).getTime() : a[sortBy];
-      const bVal = sortBy === "published_at" ? new Date(b[sortBy]).getTime() : b[sortBy];
-      return (aVal - bVal) * mul;
-    });
-  }, [videos, sortBy, sortDir]);
-
-  const handleSort = useCallback(
-    (key: SortKey) => {
-      if (key === sortBy) {
-        setSortDir((d) => (d === "desc" ? "asc" : "desc"));
-      } else {
-        setSortBy(key);
-        setSortDir("desc");
-      }
-    },
-    [sortBy],
-  );
+  const { sorted, sortBy, sortDir, handleSort } = useVideoSort(videos);
 
   if (videos.length === 0) {
     return (
@@ -50,7 +27,6 @@ export function VideoGrid({ videos }: VideoGridProps) {
 
   return (
     <div className="space-y-4">
-      {/* Sort controls */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-zinc-500">Sort by:</span>
         {SORT_OPTIONS.map(({ key, label }) => (
@@ -71,7 +47,6 @@ export function VideoGrid({ videos }: VideoGridProps) {
         ))}
       </div>
 
-      {/* Card grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {sorted.map((video, idx) => (
           <VideoCard key={video.youtube_id} video={video} rank={idx + 1} />

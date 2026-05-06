@@ -8,17 +8,10 @@ import { VideoGrid } from "../components/VideoGrid";
 import { StatsCards } from "../components/ui/StatsCards";
 import { useFilterStore } from "../stores/filterStore";
 import { useCurrentUser } from "../api/hooks/useAuth";
+import { LANGUAGE_LABELS } from "../lib/constants";
 import type { SearchResponse } from "../api/types";
 
 type Step = 1 | 2 | 3;
-
-const LANGUAGE_LABELS: Record<string, string> = {
-  en: "English",
-  es: "Spanish",
-  pt: "Portuguese",
-  fr: "French",
-  de: "German",
-};
 
 const MAX_VISIBLE_KEYWORDS = 4;
 
