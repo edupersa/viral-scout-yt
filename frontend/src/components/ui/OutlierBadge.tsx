@@ -13,7 +13,7 @@ export function OutlierBadge({ score, viralityClass, showBar = false }: OutlierB
   const isVery = viralityClass === "very_viral";
 
   return (
-    <div className="flex flex-col gap-1 min-w-[80px]">
+    <div className="flex flex-col gap-1 min-w-20">
       <span
         className={clsx(
           "inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold w-fit",
