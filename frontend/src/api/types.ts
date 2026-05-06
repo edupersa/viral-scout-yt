@@ -2,6 +2,8 @@ export interface UserResponse {
   id: number;
   email: string;
   is_active: boolean;
+  searches_used: number;
+  search_limit: number;
   created_at: string;
 }
 
@@ -31,9 +33,13 @@ export type ViralityClass = "ultra_viral" | "very_viral" | "normal";
 
 export interface SearchFilters {
   language: string | null;
-  duration: Duration | null;
+  duration: Duration | null;   // YouTube API pre-filter (short/medium/long)
+  min_duration: number;        // seconds, app-level post-filter
+  max_duration: number | null; // seconds, null = no limit
   min_subs: number;
-  max_subs: number;
+  max_subs: number | null;
+  min_views: number;
+  max_views: number | null;
   date_range: DateRange | null;
 }
 

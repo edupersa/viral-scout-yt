@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class KeywordRequest(BaseModel):
     niche: str = Field(min_length=3, max_length=300)
+    language: str | None = Field(None, max_length=10, examples=["en", "es"])
 
 
 class KeywordResponse(BaseModel):
@@ -15,10 +16,18 @@ class KeywordResponse(BaseModel):
 
 class SearchFilters(BaseModel):
     language: str | None = Field(None, max_length=10, examples=["es", "en"])
-    duration: Literal["short", "medium", "long"] | None = None
-    min_subs: int = Field(0, ge=0)
-    max_subs: int = Field(10_000_000, ge=0)
+    duration: Literal["short", "medium", "long"] | None = None  # YouTube API pre-filter
+    min_duration: int = Field(0, ge=0)           # seconds, app-level post-filter
+    max_duration: int | None = Field(None, ge=0)  # seconds, None = no limit
+    min_subs: int = Field(1, ge=0)
+    max_subs: int | None = Field(None, ge=0)      # None = no limit
+    min_views: int = Field(0, ge=0)
+    max_views: int | None = Field(None, ge=0)     # None = no limit
     date_range: Literal["7d", "30d", "90d", "365d"] | None = None
+
+
+class ExploreRequest(BaseModel):
+    filters: SearchFilters = Field(default_factory=SearchFilters)
 
 
 class SearchRequest(BaseModel):

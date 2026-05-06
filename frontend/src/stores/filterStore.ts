@@ -3,9 +3,16 @@ import type { DateRange, Duration } from "../api/types";
 
 interface FilterValues {
   language: string;
-  duration: Duration | "";
+  duration: Duration | "";    // YouTube API pre-filter
+  minDuration: number;        // minutes, app post-filter
+  maxDuration: number;        // minutes
+  maxDurationLimited: boolean;
   minSubs: number;
   maxSubs: number;
+  maxSubsLimited: boolean;
+  minViews: number;
+  maxViews: number;
+  maxViewsLimited: boolean;
   dateRange: DateRange | "";
 }
 
@@ -19,8 +26,15 @@ type FilterState = FilterValues & FilterActions;
 const DEFAULT_FILTERS: FilterValues = {
   language: "",
   duration: "",
-  minSubs: 0,
-  maxSubs: 10_000_000,
+  minDuration: 0,
+  maxDuration: 60,
+  maxDurationLimited: false,
+  minSubs: 1,
+  maxSubs: 1_000_000,
+  maxSubsLimited: false,
+  minViews: 0,
+  maxViews: 1_000_000,
+  maxViewsLimited: false,
   dateRange: "",
 };
 

@@ -1,0 +1,11 @@
+#!/bin/sh
+branch=$(git symbolic-ref HEAD 2>/dev/null | sed -e 's,.*/\(.*\),\1,')
+
+if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+  echo ""
+  echo "  ERROR: commits directos a '$branch' no están permitidos."
+  echo "  Crea una rama primero:"
+  echo "    git checkout -b feat/nombre-de-tu-feature"
+  echo ""
+  exit 1
+fi

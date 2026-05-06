@@ -22,6 +22,12 @@ class UserResponse(BaseModel):
     id: int
     email: str
     is_active: bool
+    searches_used: int
+    search_limit: int
     created_at: datetime
+
+    @property
+    def searches_remaining(self) -> int:
+        return max(0, self.search_limit - self.searches_used)
 
     model_config = {"from_attributes": True}

@@ -3,7 +3,10 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.exceptions import SearchLimitReachedException
+from app.models.user import User
 from app.repositories.search_repository import SearchRepository
+from app.repositories.user_repository import UserRepository
 from app.repositories.video_repository import VideoRepository
 from app.schemas.search import SearchFilters, SearchResponse, VideoResult
 from app.services.analyzer import classify_virality
@@ -17,15 +20,18 @@ class SearchService:
         self._db = db
         self._video_repo = VideoRepository(db)
         self._search_repo = SearchRepository(db)
+        self._user_repo = UserRepository(db)
         self._youtube = YouTubeService(settings.youtube_api_key)
 
     async def execute_search(
         self,
-        user_id: int,
+        user: User,
         niche: str,
         keywords: list[str],
         filters: SearchFilters,
     ) -> SearchResponse:
+        if user.searches_used >= user.search_limit:
+            raise SearchLimitReachedException(user.searches_used, user.search_limit)
         published_after = None
         if filters.date_range:
             from app.services.youtube import _published_after
@@ -34,7 +40,7 @@ class SearchService:
         # Search top 3 keywords separately and combine — avoids oversized queries
         seen: set[str] = set()
         video_ids: list[str] = []
-        for kw in keywords[:3]:
+        for kw in keywords[:5]:
             ids = await self._youtube.search_video_ids(
                 query=kw,
                 max_results=settings.max_search_results,
@@ -48,13 +54,14 @@ class SearchService:
                     video_ids.append(vid_id)
 
         if not video_ids:
-            search = await self._search_repo.create(
-                user_id=user_id,
+            await self._search_repo.create(
+                user_id=user.id,
                 niche=niche,
                 keywords=keywords,
                 filters=filters.model_dump(),
                 quota_used=self._youtube.quota_used,
             )
+            await self._user_repo.increment_search_count(user.id)
             return SearchResponse(results=[], total=0, quota_used=self._youtube.quota_used)
 
         video_items = await self._youtube.get_video_details(video_ids)
@@ -62,16 +69,21 @@ class SearchService:
         channel_stats = await self._youtube.get_channel_stats(channel_ids)
         enriched = self._youtube.enrich_videos(video_items, channel_stats)
 
-        # Filter by subscribers
+        # Post-filter: duration, subscribers, views
         enriched = [
             v for v in enriched
-            if filters.min_subs <= v["subs"] <= filters.max_subs
+            if v["duration_seconds"] >= filters.min_duration
+            and (filters.max_duration is None or v["duration_seconds"] <= filters.max_duration)
+            and v["subs"] >= filters.min_subs
+            and (filters.max_subs is None or v["subs"] <= filters.max_subs)
+            and v["views"] >= filters.min_views
+            and (filters.max_views is None or v["views"] <= filters.max_views)
         ]
 
         saved_videos = await self._video_repo.upsert_many(enriched)
 
         search = await self._search_repo.create(
-            user_id=user_id,
+            user_id=user.id,
             niche=niche,
             keywords=keywords,
             filters=filters.model_dump(),
@@ -81,6 +93,7 @@ class SearchService:
             search_id=search.id,
             video_ids=[v.id for v in saved_videos],
         )
+        await self._user_repo.increment_search_count(user.id)
 
         results = [
             VideoResult(
@@ -94,7 +107,7 @@ class SearchService:
         logger.info(
             "Search executed",
             extra={
-                "user_id": user_id,
+                "user_id": user.id,
                 "niche": niche,
                 "results": len(results),
                 "quota_used": self._youtube.quota_used,

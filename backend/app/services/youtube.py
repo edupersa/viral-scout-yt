@@ -63,6 +63,29 @@ class YouTubeService:
         self.quota_used += 100
         return [item["id"]["videoId"] for item in data.get("items", [])]
 
+    async def get_trending_page(
+        self,
+        region_code: str | None = None,
+        page_token: str | None = None,
+    ) -> tuple[list[dict], str | None]:
+        """Fetch one page (up to 50) of trending videos. Costs 1 quota unit.
+        Returns (items, next_page_token).
+        """
+        params: dict = {
+            "key": self._api_key,
+            "part": "snippet,statistics,contentDetails",
+            "chart": "mostPopular",
+            "maxResults": 50,
+        }
+        if region_code:
+            params["regionCode"] = region_code
+        if page_token:
+            params["pageToken"] = page_token
+
+        data = await self._get("videos", params)
+        self.quota_used += 1
+        return data.get("items", []), data.get("nextPageToken")
+
     async def get_video_details(self, video_ids: list[str]) -> list[dict]:
         """videos.list — costs 1 quota unit per batch of 50."""
         if not video_ids:
@@ -80,22 +103,28 @@ class YouTubeService:
         """channels.list — costs 1 quota unit per batch of 50. Returns {channel_id: stats}."""
         if not channel_ids:
             return {}
-        params = {
-            "key": self._api_key,
-            "part": "statistics",
-            "id": ",".join(set(channel_ids[:50])),
-        }
-        data = await self._get("channels", params)
-        self.quota_used += 1
-        return {
-            item["id"]: item["statistics"]
-            for item in data.get("items", [])
-        }
+        unique_ids = list(set(channel_ids))
+        result: dict[str, dict] = {}
+        for i in range(0, len(unique_ids), 50):
+            batch = unique_ids[i : i + 50]
+            params = {
+                "key": self._api_key,
+                "part": "statistics",
+                "id": ",".join(batch),
+            }
+            data = await self._get("channels", params)
+            self.quota_used += 1
+            for item in data.get("items", []):
+                result[item["id"]] = item["statistics"]
+        return result
 
     def enrich_videos(self, video_items: list[dict], channel_stats: dict[str, dict]) -> list[dict]:
         """Merge video details with channel stats and compute outlier scores."""
         enriched = []
         for item in video_items:
+            # Skip unavailable videos (private, deleted, or region-restricted)
+            if "viewCount" not in item.get("statistics", {}):
+                continue
             snippet = item.get("snippet", {})
             stats = item.get("statistics", {})
             details = item.get("contentDetails", {})
