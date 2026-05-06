@@ -2,17 +2,9 @@ import { useState } from "react";
 import { Sparkles, Globe } from "lucide-react";
 import { useGenerateKeywords } from "../../api/hooks/useKeywords";
 import { getApiErrorMessage } from "../../lib/apiError";
+import { LANGUAGES } from "../../lib/constants";
 import { Button } from "../ui/Button";
 import { KeywordPill } from "./KeywordPill";
-
-const LANGUAGES = [
-  { value: "", label: "Any language" },
-  { value: "en", label: "English" },
-  { value: "es", label: "Spanish" },
-  { value: "pt", label: "Portuguese" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-];
 
 interface KeywordGeneratorProps {
   onComplete: (niche: string, keywords: string[], language: string) => void;
