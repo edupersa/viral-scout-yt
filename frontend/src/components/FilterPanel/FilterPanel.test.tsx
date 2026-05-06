@@ -17,9 +17,9 @@ describe("FilterPanel", () => {
       <FilterPanel niche="fitness" selectedKeywords={["gym"]} onResults={vi.fn()} />,
       { wrapper },
     );
-    expect(screen.getByText("Language")).toBeDefined();
-    expect(screen.getByText("Duration")).toBeDefined();
-    expect(screen.getByText("Date Range")).toBeDefined();
+    expect(screen.getByText("Idioma")).toBeDefined();
+    expect(screen.getByText("Categoría de duración")).toBeDefined();
+    expect(screen.getByText("Fecha de publicación")).toBeDefined();
   });
 
   it("renders search button", () => {
