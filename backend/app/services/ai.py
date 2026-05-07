@@ -74,12 +74,12 @@ class AIService:
             return [str(k).strip() for k in keywords if k][:count]
         except json.JSONDecodeError as e:
             logger.error("Gemini returned invalid JSON", extra={"niche": niche})
-            raise ExternalServiceException("Gemini", f"Invalid JSON response: {e}")
+            raise ExternalServiceException("Gemini", f"Invalid JSON response: {e}") from e
         except ExternalServiceException:
             raise
         except Exception as e:
             logger.error("Gemini API error", extra={"niche": niche, "error": str(e)})
-            raise ExternalServiceException("Gemini", str(e))
+            raise ExternalServiceException("Gemini", str(e)) from e
 
     @retry(
         retry=retry_if_exception(_is_retryable),
@@ -89,9 +89,7 @@ class AIService:
     )
     def _call_gemini(self, prompt: str) -> str:
         try:
-            response = self._client.models.generate_content(
-                model=_MODEL, contents=prompt
-            )
+            response = self._client.models.generate_content(model=_MODEL, contents=prompt)
             return response.text.strip()
         except errors.ClientError as exc:
             if "PerDay" in str(exc):

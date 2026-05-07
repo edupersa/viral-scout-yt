@@ -29,19 +29,13 @@ class UserRepository:
 
     async def increment_search_count(self, user_id: int) -> None:
         await self._db.execute(
-            update(User)
-            .where(User.id == user_id)
-            .values(searches_used=User.searches_used + 1)
+            update(User).where(User.id == user_id).values(searches_used=User.searches_used + 1)
         )
 
     async def set_search_limit(self, user_id: int, limit: int) -> User | None:
-        await self._db.execute(
-            update(User).where(User.id == user_id).values(search_limit=limit)
-        )
+        await self._db.execute(update(User).where(User.id == user_id).values(search_limit=limit))
         return await self.get_by_id(user_id)
 
     async def reset_search_count(self, user_id: int) -> User | None:
-        await self._db.execute(
-            update(User).where(User.id == user_id).values(searches_used=0)
-        )
+        await self._db.execute(update(User).where(User.id == user_id).values(searches_used=0))
         return await self.get_by_id(user_id)

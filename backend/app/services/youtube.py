@@ -143,26 +143,29 @@ class YouTubeService:
             score = calculate_outlier_score(views, avg_views)
             virality = classify_virality(score)
 
-            enriched.append({
-                "youtube_id": item["id"],
-                "title": snippet.get("title", ""),
-                "channel_name": snippet.get("channelTitle", ""),
-                "channel_id": channel_id,
-                "views": views,
-                "subs": subs,
-                "avg_channel_views": avg_views,
-                "outlier_score": score,
-                "virality_class": virality,
-                "duration_seconds": _parse_duration(details.get("duration", "")),
-                "language": snippet.get("defaultAudioLanguage") or snippet.get("defaultLanguage"),
-                "published_at": datetime.fromisoformat(
-                    snippet.get("publishedAt", "1970-01-01T00:00:00Z").replace("Z", "+00:00")
-                ),
-                "thumbnail_url": (
-                    snippet.get("thumbnails", {}).get("high", {}).get("url", "")
-                    or snippet.get("thumbnails", {}).get("default", {}).get("url", "")
-                ),
-            })
+            enriched.append(
+                {
+                    "youtube_id": item["id"],
+                    "title": snippet.get("title", ""),
+                    "channel_name": snippet.get("channelTitle", ""),
+                    "channel_id": channel_id,
+                    "views": views,
+                    "subs": subs,
+                    "avg_channel_views": avg_views,
+                    "outlier_score": score,
+                    "virality_class": virality,
+                    "duration_seconds": _parse_duration(details.get("duration", "")),
+                    "language": snippet.get("defaultAudioLanguage")
+                    or snippet.get("defaultLanguage"),
+                    "published_at": datetime.fromisoformat(
+                        snippet.get("publishedAt", "1970-01-01T00:00:00Z").replace("Z", "+00:00")
+                    ),
+                    "thumbnail_url": (
+                        snippet.get("thumbnails", {}).get("high", {}).get("url", "")
+                        or snippet.get("thumbnails", {}).get("default", {}).get("url", "")
+                    ),
+                }
+            )
 
         enriched.sort(key=lambda v: v["outlier_score"], reverse=True)
         return enriched
@@ -173,7 +176,7 @@ class YouTubeService:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(url, params=params)
         except httpx.RequestError as e:
-            raise ExternalServiceException("YouTube", str(e))
+            raise ExternalServiceException("YouTube", str(e)) from e
 
         if resp.status_code == 403:
             body = resp.json()

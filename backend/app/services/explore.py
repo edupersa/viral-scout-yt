@@ -114,14 +114,16 @@ class ExploreService:
         # Exact duration range (minutes converted to seconds upstream)
         if filters.min_duration > 0 or filters.max_duration is not None:
             result = [
-                v for v in result
+                v
+                for v in result
                 if v["duration_seconds"] >= filters.min_duration
                 and (filters.max_duration is None or v["duration_seconds"] <= filters.max_duration)
             ]
 
         # Subscribers and views
         result = [
-            v for v in result
+            v
+            for v in result
             if v["subs"] >= filters.min_subs
             and (filters.max_subs is None or v["subs"] <= filters.max_subs)
             and v["views"] >= filters.min_views

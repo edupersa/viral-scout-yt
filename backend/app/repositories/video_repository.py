@@ -11,9 +11,7 @@ class VideoRepository:
         self._db = db
 
     async def get_by_youtube_id(self, youtube_id: str) -> Video | None:
-        result = await self._db.execute(
-            select(Video).where(Video.youtube_id == youtube_id)
-        )
+        result = await self._db.execute(select(Video).where(Video.youtube_id == youtube_id))
         return result.scalar_one_or_none()
 
     async def upsert(self, data: dict) -> Video:
@@ -33,12 +31,8 @@ class VideoRepository:
     async def upsert_many(self, videos_data: list[dict]) -> list[Video]:
         return [await self.upsert(v) for v in videos_data]
 
-    async def find_cached(
-        self, keywords: list[str], max_age_hours: int = 24
-    ) -> list[Video]:
+    async def find_cached(self, keywords: list[str], max_age_hours: int = 24) -> list[Video]:
         """Return videos already in DB matching any keyword, created recently."""
         cutoff = datetime.now(UTC) - timedelta(hours=max_age_hours)
-        result = await self._db.execute(
-            select(Video).where(Video.created_at >= cutoff).limit(50)
-        )
+        result = await self._db.execute(select(Video).where(Video.created_at >= cutoff).limit(50))
         return list(result.scalars().all())
