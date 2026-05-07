@@ -1,6 +1,7 @@
 import json
 from typing import Any
 
+from pydantic import model_validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, EnvSettingsSource, SettingsConfigDict
 
@@ -31,9 +32,21 @@ class Settings(BaseSettings):
     ) -> tuple[Any, ...]:
         return (init_settings, _CommaListEnvSource(settings_cls), file_secret_settings)
 
-    # Database
+    # Database — Railway provides postgresql://, we auto-add +asyncpg for the async driver
     database_url: str = "postgresql+asyncpg://viralscout:viralscout@localhost:5432/viralscout"
     database_url_sync: str = "postgresql://viralscout:viralscout@localhost:5432/viralscout"
+
+    @model_validator(mode="after")
+    def normalise_database_urls(self) -> "Settings":
+        if self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace(
+                "postgresql://", "postgresql+asyncpg://", 1
+            )
+        if self.database_url_sync.startswith("postgresql+asyncpg://"):
+            self.database_url_sync = self.database_url_sync.replace(
+                "postgresql+asyncpg://", "postgresql://", 1
+            )
+        return self
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
