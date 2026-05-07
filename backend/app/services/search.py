@@ -35,6 +35,7 @@ class SearchService:
         published_after = None
         if filters.date_range:
             from app.services.youtube import _published_after
+
             published_after = _published_after(filters.date_range)
 
         # Search top 3 keywords separately and combine — avoids oversized queries
@@ -71,7 +72,8 @@ class SearchService:
 
         # Post-filter: duration, subscribers, views
         enriched = [
-            v for v in enriched
+            v
+            for v in enriched
             if v["duration_seconds"] >= filters.min_duration
             and (filters.max_duration is None or v["duration_seconds"] <= filters.max_duration)
             and v["subs"] >= filters.min_subs

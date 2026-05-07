@@ -44,6 +44,7 @@ async def update_user_limit(
     user = await repo.set_search_limit(user_id, body.search_limit)
     if user is None:
         from app.exceptions import NotFoundException
+
         raise NotFoundException("User", user_id)
     return UserResponse.model_validate(user)
 
@@ -58,5 +59,6 @@ async def reset_user_searches(
     user = await repo.reset_search_count(user_id)
     if user is None:
         from app.exceptions import NotFoundException
+
         raise NotFoundException("User", user_id)
     return UserResponse.model_validate(user)

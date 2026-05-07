@@ -39,9 +39,7 @@ async def get_history(
     db: AsyncSession = Depends(get_db),
 ) -> SearchHistoryResponse:
     repo = SearchRepository(db)
-    searches, total = await repo.get_history(
-        user_id=current_user.id, limit=limit, offset=offset
-    )
+    searches, total = await repo.get_history(user_id=current_user.id, limit=limit, offset=offset)
     items = [
         SearchHistoryItem(
             id=s.id,

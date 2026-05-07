@@ -89,9 +89,7 @@ class AIService:
     )
     def _call_gemini(self, prompt: str) -> str:
         try:
-            response = self._client.models.generate_content(
-                model=_MODEL, contents=prompt
-            )
+            response = self._client.models.generate_content(model=_MODEL, contents=prompt)
             return response.text.strip()
         except errors.ClientError as exc:
             if "PerDay" in str(exc):

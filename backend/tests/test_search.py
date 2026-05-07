@@ -8,6 +8,7 @@ from app.services.analyzer import calculate_outlier_score, classify_virality
 
 # ── Unit tests for analyzer ─────────────────────────────────────────────────
 
+
 def test_outlier_score_normal():
     assert calculate_outlier_score(10_000, 10_000) == 1.0
 
@@ -79,7 +80,7 @@ async def test_search_success(auth_client: AsyncClient):
                 "virality_class": "ultra_viral",
                 "duration_seconds": 930,
                 "language": "en",
-                "published_at": datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc),
+                "published_at": datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC),
                 "thumbnail_url": "https://img.youtube.com/vi/abc123/hqdefault.jpg",
             }
         ]
