@@ -2,25 +2,39 @@
 
 > Discover viral YouTube video opportunities with AI-powered keyword generation and outlier analysis.
 
-[![CI](https://github.com/luisperaza/viral-scout-yt/actions/workflows/ci.yml/badge.svg)](https://github.com/luisperaza/viral-scout-yt/actions)
+[![CI](https://github.com/edupersa/viral-scout-yt/actions/workflows/ci.yml/badge.svg)](https://github.com/edupersa/viral-scout-yt/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61dafb)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/typescript-strict-3178c6)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/docker-compose-2496ed)](https://docs.docker.com/compose/)
 
-<!-- TODO: Replace with a real screenshot or GIF once the UI is built -->
-<!-- ![ViralScout demo](docs/assets/demo.gif) -->
+**Live demo → [viral-scout-yt.vercel.app](https://viral-scout-yt.vercel.app)**
 
-```
-┌─────────────────────────────────────────────────────┐
-│                                                     │
-│   [ Screenshot / GIF coming soon ]                  │
-│                                                     │
-│   Run `docker compose up --build` to see it live.   │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
+![Dashboard Results](docs/assets/Page_Dashboard_Results.png)
+
+<table>
+  <tr>
+    <td><img src="docs/assets/Page_Login.png" alt="Login"/></td>
+    <td><img src="docs/assets/Page_Dashboard_Keywords.png" alt="Keyword Generation"/></td>
+    <td><img src="docs/assets/Page_Dashboard_Filters.png" alt="Filters"/></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Login</sub></td>
+    <td align="center"><sub>AI Keyword Generation</sub></td>
+    <td align="center"><sub>Search Filters</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/Page_Dashboard.png" alt="Dashboard"/></td>
+    <td><img src="docs/assets/Page_Explore.png" alt="Explore Trending"/></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Dashboard</sub></td>
+    <td align="center"><sub>Explore Trending</sub></td>
+    <td></td>
+  </tr>
+</table>
 
 ## Features
 
@@ -35,7 +49,7 @@
 ## Quick start
 
 ```bash
-git clone https://github.com/luisperaza/viral-scout-yt.git
+git clone https://github.com/edupersa/viral-scout-yt.git
 cd viral-scout-yt
 cp .env.example .env        # add your API keys
 docker compose up --build
