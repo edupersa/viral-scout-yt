@@ -173,7 +173,7 @@ class YouTubeService:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(url, params=params)
         except httpx.RequestError as e:
-            raise ExternalServiceException("YouTube", str(e))
+            raise ExternalServiceException("YouTube", str(e)) from e
 
         if resp.status_code == 403:
             body = resp.json()

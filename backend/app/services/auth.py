@@ -32,7 +32,7 @@ def _decode_token(token: str) -> dict:
     try:
         return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
     except JWTError:
-        raise UnauthorizedException("Invalid or expired token")
+        raise UnauthorizedException("Invalid or expired token") from None
 
 
 class AuthService:

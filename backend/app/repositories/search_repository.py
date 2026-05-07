@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.search import Search, SearchVideo
-from app.models.video import Video
 
 
 class SearchRepository:
